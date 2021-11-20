@@ -1,0 +1,8 @@
+[package]
+name = "finite-groups"
+version = "0.1"
+lean_version = "leanprover-community/lean:3.35.1"
+path = "src"
+
+[dependencies]
+mathlib = {git = "https://github.com/leanprover-community/mathlib", rev = "3fee4b9b3dbd58686a1b35e9580e1995b63206e7"}
