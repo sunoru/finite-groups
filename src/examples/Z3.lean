@@ -1,8 +1,20 @@
 import ..fglib
 import ..bases.finite_group
+import ..bases.linear_space
+import ..bases.representation
 
 namespace FG
 
+/- ## Example: Z₃
+
+  The cyclic group of order 3
+
+   \ | e | a | b |
+  ----------------
+   e | e | a | b |
+   a | a | b | e |
+   b | b | e | a |
+-/
 namespace example_Z₃
 
 inductive Z₃ : Type
@@ -12,7 +24,7 @@ inductive Z₃ : Type
 
 namespace Z₃
 
-def mul : Z₃ → Z₃ → Z₃
+@[simp] def mul : Z₃ → Z₃ → Z₃
 | Z₃.e y    := y
 | x    Z₃.e := x
 | Z₃.a Z₃.a := Z₃.b
@@ -20,13 +32,52 @@ def mul : Z₃ → Z₃ → Z₃
 | Z₃.b Z₃.a := Z₃.e
 | Z₃.b Z₃.b := Z₃.a
 
-def inv : Z₃ → Z₃
+@[simp] def inv : Z₃ → Z₃
 | Z₃.e := Z₃.e
 | Z₃.a := Z₃.b
 | Z₃.b := Z₃.a
 
-instance Z₃ : finite_group Z₃ :=
-sorry
+instance finite_group : finite_group Z₃ :=
+{ one       := e,
+  mul       := mul,
+  mul_one   := by intro a; cases' a; refl,
+  one_mul   := by intro a; cases' a; refl,
+  mul_assoc :=
+    by intros a b c; cases' a; cases' b; cases' c; refl,
+  inv          := inv,
+  mul_left_inv := by intro a; cases' a; refl,
+  elems := ⟨⟦[e, a, b]⟧, by simp⟩,
+  complete := by intro x; cases' x; simp }
+
+/- Z₃ is Abelian -/
+instance abelian : comm_group Z₃ :=
+{ mul_comm :=
+    by intros a b; cases' a; cases' b; refl,
+  ..Z₃.finite_group }
+
+/- A representation of Z₃ -/
+noncomputable def rep1 : Z₃ → ℂ
+| Z₃.e := 0
+| Z₃.a := ⟨-0.5,  real.sqrt 3 / 2⟩ -- exp(2πi/3)
+| Z₃.b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
+
+/- Another representation of Z₃ -/
+noncomputable def rep2 : Z₃ → linear_operator mat3
+| e := mat3.linear_operator mat3.I
+| a := mat3.linear_operator ⟨
+  ⟨0, 0, 1⟩,
+  ⟨1, 0, 0⟩,
+  ⟨0, 1, 0⟩
+⟩
+| b := mat3.linear_operator ⟨
+  ⟨0, 1, 0⟩,
+  ⟨0, 0, 1⟩,
+  ⟨1, 0, 0⟩
+⟩
+
+instance rep2.representation : representation rep2 :=
+{ id_mapped := sorry,
+  mul_mapped := sorry }
 
 end Z₃
 
