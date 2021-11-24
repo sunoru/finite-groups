@@ -11,11 +11,13 @@ namespace FG
 -/
 #check linear_map
 
-def linear_operator (α : Type) [ring α] := linear_map (ring_hom.id α) α α
+def linear_operator (R : Type*) (M : Type*) [ring R] [add_comm_monoid M] [module R M] := linear_map (ring_hom.id R) M M
 
 namespace linear_operator
 
-instance monoid {α : Type} [ring α] : monoid (linear_operator α) :=
+variables {R : Type*} {M : Type*} [ring R] [add_comm_monoid M] [module R M]
+
+instance monoid : monoid (linear_operator R M) :=
 { one := linear_map.id,
   mul := λf g, f.comp g,
   mul_one := by intro f; simp,
@@ -29,11 +31,10 @@ instance monoid {α : Type} [ring α] : monoid (linear_operator α) :=
 
 end linear_operator
 
-#check linear_operator ℝ
-
 /- Representation -/
-class representation {β : Type} {α : Type} [group α] [ring β]
-  (map : α → linear_operator β) :=
+class representation {G : Type} {R : Type*} {M : Type*}
+  [group G] [ring R] [add_comm_monoid M] [module R M]
+  (map : G → linear_operator R M) :=
 (id_mapped  : map 1 = 1)
 (mul_mapped : ∀g₁ g₂, map g₁ * map g₂ = map (g₁ * g₂))
 

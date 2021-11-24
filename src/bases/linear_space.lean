@@ -6,6 +6,10 @@ namespace FG
 /- General lemmas for vectors -/
 section linear_space3
 
+class has_dot (α : Type*) (β : Type*) (γ : Type*) := (dot : α → β → γ)
+
+infixl ` ⬝ `:70  := has_dot.dot
+
 structure vec3 :=
 (x : ℝ)
 (y : ℝ)
@@ -47,10 +51,28 @@ end
   /- TODO: ? -/
   add_left_neg := sorry }
 
-def dot (a b : vec3) : ℝ :=
+@[simp] def dot (a b : vec3) : ℝ :=
   a.x * b.x + a.y * b.y + a.z * b.z
 
-notation a `⬝` b := dot a b
+instance has_dot : has_dot vec3 vec3 ℝ :=
+{ dot := dot }
+
+@[simp] def smul (c : ℝ) (v : vec3) : vec3 :=
+  ⟨c * v.x, c * v.y, c * v.z⟩
+
+instance vector_space : module ℝ vec3 :=
+{ smul := smul,
+  one_smul := by intro b; ext; simp,
+  mul_smul := begin
+    intros x y b,
+    simp,
+    repeat {apply and.intro},
+    repeat {ring}
+  end,
+  smul_zero := sorry,
+  zero_smul := sorry,
+  smul_add := sorry,
+  add_smul := sorry }
 
 end vec3
 
@@ -133,10 +155,56 @@ instance ring : ring mat3 :=
   right_distrib := sorry,
 }
 
-def linear_operator (A : mat3) : linear_operator mat3 :=
-{ to_fun := λB, A * B,
+@[simp] def mat_dot_vec (A : mat3) (x : vec3) : vec3 :=
+  ⟨A.x ⬝ x, A.y ⬝ x, A.z ⬝ x⟩
+@[simp] def vec_dot_mat (x : vec3) (A : mat3) : vec3 :=
+  mat_dot_vec A x
+
+instance has_dot : has_dot mat3 vec3 vec3 :=
+{ dot := mat_dot_vec }
+instance has_dot₂ : has_dot vec3 mat3 vec3 :=
+{ dot := vec_dot_mat }
+
+instance linear_space : module mat3 vec3 :=
+{ smul := mat_dot_vec,
+  one_smul := sorry,
+  mul_smul := sorry,
+  smul_add := sorry,
+  smul_zero := sorry,
+  add_smul := sorry,
+  zero_smul := sorry }
+
+@[simp] def linear_operator (A : mat3) : linear_operator mat3 vec3 :=
+{ to_fun := λx, A ⬝ x,
   map_add' := sorry,
   map_smul' := sorry }
+
+lemma linear_operator_eq (A B : mat3) :
+  A = B → linear_operator A = linear_operator B :=
+begin
+  intro h,
+  apply linear_map.ext,
+  intro x,
+  simp,
+  rw h
+end
+
+lemma I_eq_id : linear_operator I = linear_map.id :=
+begin
+  apply linear_map.ext,
+  intro x,
+  simp,
+  cases' x,
+  calc (⟨⟨1, 0, 0⟩, ⟨0, 1, 0⟩, ⟨0, 0, 1⟩⟩ : mat3) ⬝ (vec3.mk x y z)
+    = vec3.mk ((vec3.mk 1 0 0) ⬝ (vec3.mk x y z))
+      ((vec3.mk 0 1 0) ⬝ (vec3.mk x y z))
+      ((vec3.mk 0 0 1) ⬝ (vec3.mk x y z))
+      : by refl
+    ... = vec3.mk (1 * x + 0 * y + 0 * z) (0 * x + 1 * y + 0 * z) (0 * x + 0 * y + 1 * z)
+      : by refl
+    ... = vec3.mk x y z
+      : by norm_num,
+end
 
 end mat3
 

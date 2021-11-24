@@ -25,17 +25,17 @@ inductive Z₃ : Type
 namespace Z₃
 
 @[simp] def mul : Z₃ → Z₃ → Z₃
-| Z₃.e y    := y
-| x    Z₃.e := x
-| Z₃.a Z₃.a := Z₃.b
-| Z₃.a Z₃.b := Z₃.e
-| Z₃.b Z₃.a := Z₃.e
-| Z₃.b Z₃.b := Z₃.a
+| e y := y
+| x e := x
+| a a := b
+| a b := e
+| b a := e
+| b b := a
 
 @[simp] def inv : Z₃ → Z₃
-| Z₃.e := Z₃.e
-| Z₃.a := Z₃.b
-| Z₃.b := Z₃.a
+| e := e
+| a := b
+| b := a
 
 instance finite_group : finite_group Z₃ :=
 { one       := e,
@@ -57,12 +57,12 @@ instance abelian : comm_group Z₃ :=
 
 /- A representation of Z₃ -/
 noncomputable def rep1 : Z₃ → ℂ
-| Z₃.e := 0
-| Z₃.a := ⟨-0.5,  real.sqrt 3 / 2⟩ -- exp(2πi/3)
-| Z₃.b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
+| e := 0
+| a := ⟨-0.5,  real.sqrt 3 / 2⟩ -- exp(2πi/3)
+| b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
 
-/- Another representation of Z₃ -/
-noncomputable def rep2 : Z₃ → linear_operator mat3
+/- ## The regular representation -/
+def rep2 : Z₃ → linear_operator mat3 vec3
 | e := mat3.linear_operator mat3.I
 | a := mat3.linear_operator ⟨
   ⟨0, 0, 1⟩,
@@ -76,8 +76,59 @@ noncomputable def rep2 : Z₃ → linear_operator mat3
 ⟩
 
 instance rep2.representation : representation rep2 :=
-{ id_mapped := sorry,
-  mul_mapped := sorry }
+{ id_mapped  := by calc
+    (1 : Z₃).rep2 = mat3.linear_operator mat3.I
+      : by refl
+    ... = linear_map.id
+      : mat3.I_eq_id
+    ... = (1 : linear_operator mat3 vec3)
+      : by refl,
+  mul_mapped := begin
+    intros g₁ g₂,
+    cases' g₁,
+    { calc e.rep2 * g₂.rep2 = mat3.I.linear_operator * g₂.rep2
+        : by refl
+      ... = g₂.rep2
+        : by rw mat3.I_eq_id; apply one_mul g₂.rep2
+      ... = (e * g₂).rep2
+        : by cases' g₂; repeat {refl} },
+    { sorry },
+    { sorry }
+    -- { cases' g₂,
+    --   { calc e.rep2 * e.rep2 = mat3.I.linear_operator * mat3.I.linear_operator
+    --       : by refl
+    --     ... = mat3.I.linear_operator
+    --       : by rw mat3.I_eq_id; refl
+    --     ... = e.rep2
+    --       : by refl
+    --     ... = (e * e).rep2
+    --       : by refl },
+    --   { calc e.rep2 * a.rep2 = mat3.I.linear_operator * mat3.linear_operator
+    --         ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
+    --       : by refl
+    --     ... = mat3.linear_operator ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
+    --       : by rw mat3.I_eq_id; refl
+    --     ... = a.rep2
+    --       : by refl
+    --     ... = (e * a).rep2
+    --       : by refl },
+    --   { calc e.rep2 * b.rep2 = mat3.I.linear_operator * mat3.linear_operator
+    --         ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
+    --       : by refl
+    --     ... = mat3.linear_operator ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
+    --       : by rw mat3.I_eq_id; refl
+    --     ... = b.rep2
+    --       : by refl
+    --     ... = (e * b).rep2
+    --       : by refl },
+    -- }
+    -- cases' x,
+    -- cases' g₁,
+    -- {
+    --   cases' g₂,
+    --   simp [rep2],
+    -- }
+  end }
 
 end Z₃
 

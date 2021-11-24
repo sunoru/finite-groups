@@ -7,6 +7,8 @@ import data.vector
 import linear_algebra.multilinear.basic
 import tactic.induction
 
+set_option pp.beta true
+
 /- # Finite Group Library -/
 
 namespace FG
