@@ -92,42 +92,60 @@ instance rep2.representation : representation rep2 :=
         : by rw mat3.I_eq_id; apply one_mul g₂.rep2
       ... = (e * g₂).rep2
         : by cases' g₂; repeat {refl} },
-    { sorry },
-    { sorry }
-    -- { cases' g₂,
-    --   { calc e.rep2 * e.rep2 = mat3.I.linear_operator * mat3.I.linear_operator
-    --       : by refl
-    --     ... = mat3.I.linear_operator
-    --       : by rw mat3.I_eq_id; refl
-    --     ... = e.rep2
-    --       : by refl
-    --     ... = (e * e).rep2
-    --       : by refl },
-    --   { calc e.rep2 * a.rep2 = mat3.I.linear_operator * mat3.linear_operator
-    --         ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
-    --       : by refl
-    --     ... = mat3.linear_operator ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
-    --       : by rw mat3.I_eq_id; refl
-    --     ... = a.rep2
-    --       : by refl
-    --     ... = (e * a).rep2
-    --       : by refl },
-    --   { calc e.rep2 * b.rep2 = mat3.I.linear_operator * mat3.linear_operator
-    --         ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
-    --       : by refl
-    --     ... = mat3.linear_operator ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
-    --       : by rw mat3.I_eq_id; refl
-    --     ... = b.rep2
-    --       : by refl
-    --     ... = (e * b).rep2
-    --       : by refl },
-    -- }
+    have h_mul_e : ∀(g : Z₃), g.rep2 * e.rep2 = (g * e).rep2 :=
+    begin
+      intro g,
+      calc g.rep2 * e.rep2 = g.rep2 * mat3.I.linear_operator
+        : by refl
+      ... = g.rep2
+        : by rw mat3.I_eq_id; apply mul_one g.rep2
+      ... = (g * e).rep2
+        : by cases' g; repeat {refl}
+    end,
+    
+    { cases' g₂,
+      { apply h_mul_e },
+      { calc a.rep2 * a.rep2 = mat3.linear_operator ⟨
+          ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩
+        ⟩ * mat3.linear_operator ⟨
+          ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩
+        ⟩
+          : by refl
+        ... = mat3.linear_operator ⟨
+          ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩
+        ⟩
+          : by sorry
+        ... = b.rep2
+          : by refl
+        ... = (a * a).rep2
+          : by refl },
+      { sorry }
+    }
+      -- { calc e.rep2 * a.rep2 = mat3.I.linear_operator * mat3.linear_operator
+      --       ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
+      --     : by refl
+      --   ... = mat3.linear_operator ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
+      --     : by rw mat3.I_eq_id; refl
+      --   ... = a.rep2
+      --     : by refl
+      --   ... = (e * a).rep2
+      --     : by refl },
+      -- { calc e.rep2 * b.rep2 = mat3.I.linear_operator * mat3.linear_operator
+      --       ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
+      --     : by refl
+      --   ... = mat3.linear_operator ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
+      --     : by rw mat3.I_eq_id; refl
+      --   ... = b.rep2
+      --     : by refl
+      --   ... = (e * b).rep2
+      --     : by refl },
     -- cases' x,
     -- cases' g₁,
     -- {
     --   cases' g₂,
     --   simp [rep2],
     -- }
+    { sorry }
   end }
 
 end Z₃

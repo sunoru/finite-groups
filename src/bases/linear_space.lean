@@ -4,7 +4,7 @@ import .representation
 namespace FG
 
 /- General lemmas for vectors -/
-section linear_space3
+-- section linear_space3
 
 class has_dot (α : Type*) (β : Type*) (γ : Type*) := (dot : α → β → γ)
 
@@ -35,6 +35,7 @@ end
 @[simp] def neg (a : vec3) : vec3 :=
   ⟨-a.x, -a.y, -a.z⟩
 
+-- set_option trace.simplify.rewrite true
 @[simp] instance add_comm_group : add_comm_group vec3 :=
 { zero := zero,
   add  := add,
@@ -46,10 +47,20 @@ end
   end,
   zero_add := by intro a; ext; simp,
   add_zero := by intro a; ext; simp,
-  add_comm := sorry,
+  add_comm := begin
+    intros a b,
+    /- `simp` could not directly work on `a + b = b + a`,
+      but it could simplify `a.add b = b.add a` here,
+      Similar case in some functions below such as `add_left_neg` -/
+    have h : a.add b = b.add a := by simp; repeat {apply and.intro}; repeat {ring},
+    exact h
+  end,
   neg := neg,
-  /- TODO: ? -/
-  add_left_neg := sorry }
+  add_left_neg := begin
+    intro a,
+    have h : (a.neg).add a = zero := by simp; repeat {apply and.intro}; repeat {ring},
+    exact h
+  end }
 
 @[simp] def dot (a b : vec3) : ℝ :=
   a.x * b.x + a.y * b.y + a.z * b.z
@@ -69,10 +80,26 @@ instance vector_space : module ℝ vec3 :=
     repeat {apply and.intro},
     repeat {ring}
   end,
-  smul_zero := sorry,
-  zero_smul := sorry,
-  smul_add := sorry,
-  add_smul := sorry }
+  smul_zero := begin
+    intro r,
+    have h : smul r zero = 0 := by simp; refl,
+    exact h
+  end,
+  zero_smul := begin
+    intro r,
+    have h : smul 0 r = 0 := by simp; refl,
+    exact h
+  end,
+  smul_add := begin
+    intros r x y,
+    have h : smul r (x.add y) = (smul r x).add (smul r y) := by simp; repeat {apply and.intro}; repeat {ring},
+    exact h
+  end,
+  add_smul := begin
+    intros r s x,
+    have h : smul (r + s) x = smul r x + smul s x := by simp; repeat {apply and.intro}; repeat {ring_nf},
+    exact h
+  end }
 
 end vec3
 
@@ -118,15 +145,30 @@ end
   ⟨A.x.z, A.y.z, A.z.z⟩
 
 @[simp] def mul (A B : mat3) : mat3 := ⟨
-  ⟨A.x ⬝ A.col_x, A.x ⬝ A.col_y, A.x ⬝ A.col_z⟩,
-  ⟨A.y ⬝ A.col_x, A.y ⬝ A.col_y, A.y ⬝ A.col_z⟩,
-  ⟨A.z ⬝ A.col_x, A.z ⬝ A.col_y, A.z ⬝ A.col_z⟩
+  ⟨vec3.dot A.x B.col_x, vec3.dot A.x B.col_y, vec3.dot A.x B.col_z⟩,
+  ⟨vec3.dot A.y B.col_x, vec3.dot A.y B.col_y, vec3.dot A.y B.col_z⟩,
+  ⟨vec3.dot A.z B.col_x, vec3.dot A.z B.col_y, vec3.dot A.z B.col_z⟩
 ⟩
+
+/-
+  Similar problem.
+  The following does not work with `simp [vec3.dot]`
+ -/
+-- @[simp] def mul (A B : mat3) : mat3 := ⟨
+--   ⟨A.x ⬝ B.col_x, A.x ⬝ B.col_y, A.x ⬝ B.col_z⟩,
+--   ⟨A.y ⬝ B.col_x, A.y ⬝ B.col_y, A.y ⬝ B.col_z⟩,
+--   ⟨A.z ⬝ B.col_x, A.z ⬝ B.col_y, A.z ⬝ B.col_z⟩
+-- ⟩
 
 instance ring : ring mat3 :=
 { zero := zero,
   add  := add,
-  add_assoc := sorry,
+  add_assoc := begin
+    intros a b c,
+    simp,
+    repeat {apply and.intro},
+    repeat {cc}
+  end,
   zero_add := begin
     intro a,
     ext,
@@ -134,7 +176,7 @@ instance ring : ring mat3 :=
     ext,
     repeat {apply and.intro},
     repeat {ring}
-  end, -- by intro a; ext; simp,
+  end,
   add_zero := begin
     intro a,
     ext,
@@ -143,13 +185,33 @@ instance ring : ring mat3 :=
     repeat {apply and.intro},
     repeat {ring}
   end,
-  add_comm := sorry,
+  add_comm := begin
+    intros a b,
+    have h : a.add b = b.add a := by simp; repeat {apply and.intro}; repeat {cc},
+    exact h
+  end,
   neg := neg,
-  add_left_neg := sorry,
+  add_left_neg := begin
+    intro a,
+    have h : (a.neg).add a = zero := by simp; refl,
+    exact h
+  end,
   one := I,
   mul := mul,
-  mul_assoc := sorry,
-  one_mul := sorry,
+  mul_assoc := begin
+    intros a b c,
+    simp,
+    repeat {apply and.intro},
+    repeat {cc},
+  end,
+  one_mul := begin
+    intro a,
+    simp,
+    repeat {apply and.intro},
+    repeat {cc},
+    -- intro a,
+    -- simp,
+  end,
   mul_one := sorry,
   left_distrib := sorry,
   right_distrib := sorry,
@@ -164,6 +226,10 @@ instance has_dot : has_dot mat3 vec3 vec3 :=
 { dot := mat_dot_vec }
 instance has_dot₂ : has_dot vec3 mat3 vec3 :=
 { dot := vec_dot_mat }
+
+lemma mat_dot_vec_assoc (A B : mat3) (v : vec3) :
+  A.mat_dot_vec (B ⬝ v) = (A * B) ⬝ v :=
+sorry
 
 instance linear_space : module mat3 vec3 :=
 { smul := mat_dot_vec,
@@ -206,8 +272,17 @@ begin
       : by norm_num,
 end
 
+lemma linear_operator_mul_linear_operator (A B : mat3) :
+  linear_operator A * linear_operator B = linear_operator (A * B) :=
+begin
+  apply linear_map.ext,
+  intro v,
+  simp,
+  apply mat_dot_vec_assoc
+end
+
 end mat3
 
-end linear_space3
+-- end linear_space3
 
 end FG
