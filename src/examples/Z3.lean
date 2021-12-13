@@ -37,7 +37,7 @@ namespace Z₃
 | a := b
 | b := a
 
-instance finite_group : finite_group Z₃ :=
+@[simps] instance finite_group : finite_group Z₃ :=
 { one       := e,
   mul       := mul,
   mul_one   := by intro a; cases' a; refl,
@@ -50,7 +50,7 @@ instance finite_group : finite_group Z₃ :=
   complete := by intro x; cases' x; simp }
 
 /- Z₃ is Abelian -/
-instance abelian : comm_group Z₃ :=
+@[simps] instance abelian : comm_group Z₃ :=
 { mul_comm :=
     by intros a b; cases' a; cases' b; refl,
   ..Z₃.finite_group }
@@ -62,7 +62,7 @@ noncomputable def rep1 : Z₃ → ℂ
 | b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
 
 /- ## The regular representation -/
-def rep2 : Z₃ → linear_operator mat3 vec3
+def rep2 : Z₃ → linear_operator ℝ vec3
 | e := mat3.linear_operator mat3.I
 | a := mat3.linear_operator ⟨
   ⟨0, 0, 1⟩,
@@ -75,77 +75,24 @@ def rep2 : Z₃ → linear_operator mat3 vec3
   ⟨1, 0, 0⟩
 ⟩
 
-instance rep2.representation : representation rep2 :=
+@[simps] instance rep2.representation : representation rep2 :=
 { id_mapped  := by calc
     (1 : Z₃).rep2 = mat3.linear_operator mat3.I
       : by refl
     ... = linear_map.id
       : mat3.I_eq_id
-    ... = (1 : linear_operator mat3 vec3)
+    ... = (1 : linear_operator ℝ vec3)
       : by refl,
   mul_mapped := begin
     intros g₁ g₂,
     cases' g₁,
-    { calc e.rep2 * g₂.rep2 = mat3.I.linear_operator * g₂.rep2
-        : by refl
-      ... = g₂.rep2
-        : by rw mat3.I_eq_id; apply one_mul g₂.rep2
-      ... = (e * g₂).rep2
-        : by cases' g₂; repeat {refl} },
-    have h_mul_e : ∀(g : Z₃), g.rep2 * e.rep2 = (g * e).rep2 :=
-    begin
-      intro g,
-      calc g.rep2 * e.rep2 = g.rep2 * mat3.I.linear_operator
-        : by refl
-      ... = g.rep2
-        : by rw mat3.I_eq_id; apply mul_one g.rep2
-      ... = (g * e).rep2
-        : by cases' g; repeat {refl}
-    end,
-    
-    { cases' g₂,
-      { apply h_mul_e },
-      { calc a.rep2 * a.rep2 = mat3.linear_operator ⟨
-          ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩
-        ⟩ * mat3.linear_operator ⟨
-          ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩
-        ⟩
-          : by refl
-        ... = mat3.linear_operator ⟨
-          ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩
-        ⟩
-          : by sorry
-        ... = b.rep2
-          : by refl
-        ... = (a * a).rep2
-          : by refl },
-      { sorry }
+    repeat {
+      cases' g₂,
+      repeat {
+        apply linear_map.ext,
+        intro x,
+        simp [rep2, group.mul] },
     }
-      -- { calc e.rep2 * a.rep2 = mat3.I.linear_operator * mat3.linear_operator
-      --       ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
-      --     : by refl
-      --   ... = mat3.linear_operator ⟨ ⟨0, 0, 1⟩, ⟨1, 0, 0⟩, ⟨0, 1, 0⟩ ⟩
-      --     : by rw mat3.I_eq_id; refl
-      --   ... = a.rep2
-      --     : by refl
-      --   ... = (e * a).rep2
-      --     : by refl },
-      -- { calc e.rep2 * b.rep2 = mat3.I.linear_operator * mat3.linear_operator
-      --       ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
-      --     : by refl
-      --   ... = mat3.linear_operator ⟨ ⟨0, 1, 0⟩, ⟨0, 0, 1⟩, ⟨1, 0, 0⟩ ⟩
-      --     : by rw mat3.I_eq_id; refl
-      --   ... = b.rep2
-      --     : by refl
-      --   ... = (e * b).rep2
-      --     : by refl },
-    -- cases' x,
-    -- cases' g₁,
-    -- {
-    --   cases' g₂,
-    --   simp [rep2],
-    -- }
-    { sorry }
   end }
 
 end Z₃
