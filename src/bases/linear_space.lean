@@ -6,11 +6,6 @@ namespace FG
 /- General lemmas for vectors -/
 -- section linear_space3
 
-@[notation_class]
-class has_dot (α : Type*) (β : Type*) (γ : Type*) := (dot : α → β → γ)
-
-infixl ` ⬝ `:70  := has_dot.dot
-
 structure vec3 :=
 (x : ℝ)
 (y : ℝ)
@@ -28,12 +23,12 @@ begin
   assumption
 end
 
-@[simps] def zero : vec3 := ⟨0, 0, 0⟩
+@[simp] def zero : vec3 := ⟨0, 0, 0⟩
 
-@[simps] def add (a b : vec3) : vec3 :=
+@[simp] def add (a b : vec3) : vec3 :=
   ⟨a.x + b.x, a.y + b.y, a.z + b.z⟩
 
-@[simps] def neg (a : vec3) : vec3 :=
+@[simp] def neg (a : vec3) : vec3 :=
   ⟨-a.x, -a.y, -a.z⟩
 
 -- set_option trace.simplify.rewrite true
@@ -42,7 +37,7 @@ end
   add  := add,
   add_assoc := begin
     intros a b c,
-    simp [add],
+    simp,
     repeat {apply and.intro},
     repeat {ring}
   end,
@@ -53,23 +48,20 @@ end
     /- `simp` could not directly work on `a + b = b + a`,
       but it could simplify `a.add b = b.add a` here,
       Similar case in some functions below such as `add_left_neg` -/
-    have h : a.add b = b.add a := by simp [add]; repeat {apply and.intro}; repeat {ring},
+    have h : a.add b = b.add a := by simp; repeat {apply and.intro}; repeat {ring},
     exact h
   end,
   neg := neg,
   add_left_neg := begin
     intro a,
-    have h : (a.neg).add a = zero := by simp [add]; refl,
+    have h : (a.neg).add a = zero := by simp; refl,
     exact h
   end }
 
-def dot (a b : vec3) : ℝ :=
+@[simp] def dot (a b : vec3) : ℝ :=
   a.x * b.x + a.y * b.y + a.z * b.z
 
 -- lemma dot_zero
-
-@[simps] instance has_dot : has_dot vec3 vec3 ℝ :=
-{ dot := dot }
 
 @[simp] def smul (c : ℝ) (v : vec3) : vec3 :=
   ⟨c * v.x, c * v.y, c * v.z⟩
@@ -96,7 +88,7 @@ def dot (a b : vec3) : ℝ :=
   smul_add := begin
     intros r x y,
     have h : smul r (x.add y) = (smul r x).add (smul r y) := begin
-      simp [add],
+      simp,
       repeat {apply and.intro},
       repeat {ring},
     end,
@@ -106,7 +98,7 @@ def dot (a b : vec3) : ℝ :=
     intros r s x,
     have h : smul (r + s) x = smul r x + smul s x := begin
       ext,
-      simp [add],
+      simp,
       repeat {apply and.intro},
       repeat {ring_nf}
     end,
@@ -135,32 +127,32 @@ begin
   assumption
 end
 
-@[simps] def zero : mat3 := ⟨vec3.zero, vec3.zero, vec3.zero⟩
+@[simp] def zero : mat3 := ⟨vec3.zero, vec3.zero, vec3.zero⟩
 
-@[simps] def I : mat3 := ⟨
+@[simp] def I : mat3 := ⟨
   ⟨1, 0, 0⟩,
   ⟨0, 1, 0⟩,
   ⟨0, 0, 1⟩
 ⟩
 
-@[simps] def add (A B : mat3) : mat3 :=
+@[simp] def add (A B : mat3) : mat3 :=
   ⟨A.x + B.x, A.y + B.y, A.z + B.z⟩
 
 @[simp] def neg (A : mat3) : mat3 :=
   ⟨-A.x, -A.y, -A.z⟩
 
-@[simps] def col_x (A : mat3) : vec3 :=
+@[simp] def col_x (A : mat3) : vec3 :=
   ⟨A.x.x, A.y.x, A.z.x⟩
-@[simps] def col_y (A : mat3) : vec3 :=
+@[simp] def col_y (A : mat3) : vec3 :=
   ⟨A.x.y, A.y.y, A.z.y⟩
-@[simps] def col_z (A : mat3) : vec3 :=
+@[simp] def col_z (A : mat3) : vec3 :=
   ⟨A.x.z, A.y.z, A.z.z⟩
 
 
-@[simps] def mul (A B : mat3) : mat3 := ⟨
-  ⟨A.x ⬝ B.col_x, A.x ⬝ B.col_y, A.x ⬝ B.col_z⟩,
-  ⟨A.y ⬝ B.col_x, A.y ⬝ B.col_y, A.y ⬝ B.col_z⟩,
-  ⟨A.z ⬝ B.col_x, A.z ⬝ B.col_y, A.z ⬝ B.col_z⟩
+@[simp] def mul (A B : mat3) : mat3 := ⟨
+  ⟨A.x.dot B.col_x, A.x.dot B.col_y, A.x.dot B.col_z⟩,
+  ⟨A.y.dot B.col_x, A.y.dot B.col_y, A.y.dot B.col_z⟩,
+  ⟨A.z.dot B.col_x, A.z.dot B.col_y, A.z.dot B.col_z⟩
 ⟩
 
 @[simps] instance ring : ring mat3 :=
@@ -168,14 +160,14 @@ end
   add  := add,
   add_assoc := begin
     intros a b c,
-    simp [add],
+    simp,
     repeat {apply and.intro},
     repeat {cc}
   end,
   zero_add := begin
     intro a,
     cases' a,
-    simp [add, vec3.add],
+    simp,
     repeat {apply and.intro},
     /-
       Why `refl` cannot be directly used here? 
@@ -193,7 +185,7 @@ end
   add_zero := begin
     intro a,
     cases' a,
-    simp [add, vec3.add],
+    simp,
     repeat {apply and.intro},
     { cases' x, refl },
     { cases' y, refl },
@@ -201,20 +193,20 @@ end
   end,
   add_comm := begin
     intros a b,
-    have h : a.add b = b.add a := by simp [add]; repeat {apply and.intro}; repeat {cc},
+    have h : a.add b = b.add a := by simp; repeat {apply and.intro}; repeat {cc},
     exact h
   end,
   neg := neg,
   add_left_neg := begin
     intro a,
-    have h : (a.neg).add a = zero := by simp [add, vec3.add]; refl,
+    have h : (a.neg).add a = zero := by simp; refl,
     exact h
   end,
   one := I,
   mul := mul,
   mul_assoc := begin
     intros a b c,
-    simp [mul, vec3.dot],
+    simp,
     repeat {apply and.intro},
     /- This is the most time consuming step... -/
     repeat {ring},
@@ -222,17 +214,8 @@ end
   one_mul := begin
     intro a,
     cases' a,
-    simp [mul, vec3.dot],
+    simp,
     repeat {apply and.intro},
-    /-
-      Why `refl` cannot be directly used here? 
-      ```
-      invalid apply tactic, failed to unify
-        {x := x.x, y := x.y, z := x.z} = x
-      with
-        ?m_2 = ?m_2
-      ```
-    -/
     { cases' x, refl },
     { cases' y, refl },
     { cases' z, refl }
@@ -241,7 +224,7 @@ end
   mul_one := begin
     intro a,
     cases' a,
-    simp [mul, vec3.dot],
+    simp,
     repeat {apply and.intro},
     { cases' x, refl },
     { cases' y, refl },
@@ -249,30 +232,25 @@ end
   end,
   left_distrib := begin
     intros a b c,
-    simp [add, mul, vec3.dot, vec3.add],
+    simp,
     repeat {apply and.intro},
     repeat {ring}
   end,
   right_distrib := begin
     intros a b c,
-    simp [add, mul, vec3.dot, vec3.add],
+    simp,
     repeat {apply and.intro},
     repeat {ring}
   end
 }
 
-@[simps] def mat_dot_vec (A : mat3) (x : vec3) : vec3 :=
-  ⟨A.x ⬝ x, A.y ⬝ x, A.z ⬝ x⟩
-@[simps] def vec_dot_mat (x : vec3) (A : mat3) : vec3 :=
-  mat_dot_vec A x
-
-@[simps] instance has_dot : has_dot mat3 vec3 vec3 :=
-{ dot := mat_dot_vec }
+@[simp] def mat_dot_vec (A : mat3) (x : vec3) : vec3 :=
+  ⟨A.x.dot x, A.y.dot x, A.z.dot x⟩
 
 lemma mat_dot_vec_assoc (A B : mat3) (v : vec3) :
-  (A * B) ⬝ v = A.mat_dot_vec (B ⬝ v) :=
+  (A * B).mat_dot_vec v = A.mat_dot_vec (B.mat_dot_vec v) :=
 begin
-  simp [mat_dot_vec, mul, vec3.dot],
+  simp,
   repeat {apply and.intro},
   repeat {ring}
 end
@@ -281,49 +259,40 @@ end
 { smul := mat_dot_vec,
   one_smul := begin
     intros b,
-    simp [mat_dot_vec, vec3.dot],
+    simp,
     cases' b,
     refl,
   end,
   mul_smul := mat_dot_vec_assoc,
   smul_add := begin
     intros r x y,
-    simp [mat_dot_vec, vec3.dot, vec3.add],
+    simp,
     repeat {apply and.intro},
     repeat {ring}
   end,
   add_smul := begin
     intros r s x,
-    simp [mat_dot_vec, vec3.dot, vec3.add],
+    simp,
     repeat {apply and.intro},
     repeat {ring},
   end,
-  smul_zero := begin
-    intro r,
-    simp [mat_dot_vec, vec3.dot],
-    refl
-  end,
-  zero_smul := begin
-    intro r,
-    simp [mat_dot_vec, vec3.dot],
-    refl
-  end }
+  smul_zero := by intro r; simp,
+  zero_smul := by intro r; simp }
 
 @[simp] def linear_operator (A : mat3) : linear_operator mat3 vec3 :=
-{ to_fun := λx, A ⬝ x,
+{ to_fun := λx, A.mat_dot_vec x,
   map_add' := begin
     intros x y,
-    simp [mat_dot_vec, vec3.dot, vec3.add],
+    simp,
     repeat {apply and.intro},
     repeat {ring}
   end,
   map_smul' := begin
     intros B x,
-
-    -- simp [mat_dot_vec, vec3.dot],
-    -- repeat {apply and.intro},
-    -- { ring_nf, },
-    -- repeat {sorry}
+    simp,
+    repeat {apply and.intro},
+    /- Wrong!!! -/
+    repeat {sorry}
   end }
 
 lemma linear_operator_eq (A B : mat3) :
