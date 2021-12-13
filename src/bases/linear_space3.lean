@@ -23,6 +23,16 @@ begin
   assumption
 end
 
+/-
+  `vec3` is equivalent to `vector ℝ 3`.
+  We can firstly define the latter as a setoid
+-/
+def to_vector (v : vec3) : vector ℝ 3
+:= ⟨[v.x, v.y, v.z], by refl ⟩
+def from_vector (v : vector ℝ 3) : vec3
+:= ⟨v.nth 1, v.nth 2, v.nth 3⟩
+
+
 @[simp] def zero : vec3 := ⟨0, 0, 0⟩
 
 @[simp] def add (a b : vec3) : vec3 :=
@@ -243,8 +253,7 @@ end
     simp,
     repeat {apply and.intro},
     repeat {ring}
-  end
-}
+  end }
 
 @[simp] def mat_dot_vec (A : mat3) (x : vec3) : vec3 :=
   ⟨A.x.dot x, A.y.dot x, A.z.dot x⟩
@@ -296,7 +305,7 @@ end
     repeat {ring},
   end }
 
-lemma linear_operator_eq (A B : mat3) :
+@[simp] lemma linear_operator_eq (A B : mat3) :
   A = B → linear_operator A = linear_operator B :=
 begin
   intro h,
@@ -305,7 +314,7 @@ begin
   simp [h]
 end
 
-lemma I_eq_id : linear_operator I = linear_map.id :=
+@[simp] lemma I_eq_id : linear_operator I = linear_map.id :=
 begin
   apply linear_map.ext,
   intro x,
@@ -313,7 +322,7 @@ begin
   simp
 end
 
-lemma linear_operator_mul_linear_operator (A B : mat3) :
+@[simp] lemma linear_operator_mul_linear_operator (A B : mat3) :
   linear_operator A * linear_operator B = linear_operator (A * B) :=
 begin
   apply linear_map.ext,
@@ -323,7 +332,6 @@ begin
   repeat {apply and.intro},
   repeat {ring}
 end
-
 end mat3
 
 -- end linear_space3

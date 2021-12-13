@@ -1,6 +1,7 @@
 import ..fglib
 import ..bases.finite_group
-import ..bases.linear_space
+import ..bases.linear_space3
+import ..bases.mat3_representation
 import ..bases.representation
 
 namespace FG
@@ -60,23 +61,26 @@ noncomputable def rep1 : Z₃ → ℂ
 | e := 0
 | a := ⟨-0.5,  real.sqrt 3 / 2⟩ -- exp(2πi/3)
 | b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
+instance rep1.representation : representation Z₃ ℂ ℂ :=
+sorry
 
 /- ## The regular representation -/
-def rep2 : Z₃ → linear_operator ℝ vec3
-| e := mat3.linear_operator mat3.I
-| a := mat3.linear_operator ⟨
+def rep2 : Z₃ → mat3
+| e := mat3.I
+| a := ⟨
   ⟨0, 0, 1⟩,
   ⟨1, 0, 0⟩,
   ⟨0, 1, 0⟩
 ⟩
-| b := mat3.linear_operator ⟨
+| b := ⟨
   ⟨0, 1, 0⟩,
   ⟨0, 0, 1⟩,
   ⟨1, 0, 0⟩
 ⟩
 
-@[simps] instance rep2.representation : representation rep2 :=
-{ id_mapped  := by calc
+@[simps] instance rep2.representation : mat3.representation Z₃ :=
+{ f := rep2,
+  id_mapped := by calc
     (1 : Z₃).rep2 = mat3.linear_operator mat3.I
       : by refl
     ... = linear_map.id
@@ -91,7 +95,8 @@ def rep2 : Z₃ → linear_operator ℝ vec3
       repeat {
         apply linear_map.ext,
         intro x,
-        simp [rep2, group.mul] },
+        simp [rep2, group.mul]
+      }
     }
   end }
 
