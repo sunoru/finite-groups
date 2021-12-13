@@ -1,4 +1,5 @@
 import algebra
+import algebra.group.basic
 import data.complex.basic
 import data.matrix.basic
 import data.matrix.notation

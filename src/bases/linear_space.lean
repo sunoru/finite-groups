@@ -61,6 +61,8 @@ end
 @[simp] def dot (a b : vec3) : ℝ :=
   a.x * b.x + a.y * b.y + a.z * b.z
 
+infixr ` ⋅ `:100 := dot
+
 -- lemma dot_zero
 
 @[simp] def smul (c : ℝ) (v : vec3) : vec3 :=
@@ -255,7 +257,7 @@ begin
   repeat {ring}
 end
 
-@[simps] instance linear_space : module mat3 vec3 :=
+@[simps] instance module_vec3 : module mat3 vec3 :=
 { smul := mat_dot_vec,
   one_smul := begin
     intros b,
@@ -279,8 +281,8 @@ end
   smul_zero := by intro r; simp,
   zero_smul := by intro r; simp }
 
-@[simp] def linear_operator (A : mat3) : linear_operator mat3 vec3 :=
-{ to_fun := λx, A.mat_dot_vec x,
+@[simp] def linear_operator (A : mat3) : linear_operator ℝ vec3 :=
+{ to_fun := λx, A • x,
   map_add' := begin
     intros x y,
     simp,
@@ -291,8 +293,7 @@ end
     intros B x,
     simp,
     repeat {apply and.intro},
-    /- Wrong!!! -/
-    repeat {sorry}
+    repeat {ring},
   end }
 
 lemma linear_operator_eq (A B : mat3) :
@@ -301,25 +302,15 @@ begin
   intro h,
   apply linear_map.ext,
   intro x,
-  simp,
-  rw h
+  simp [h]
 end
 
 lemma I_eq_id : linear_operator I = linear_map.id :=
 begin
   apply linear_map.ext,
   intro x,
-  simp,
   cases' x,
-  calc (⟨⟨1, 0, 0⟩, ⟨0, 1, 0⟩, ⟨0, 0, 1⟩⟩ : mat3) ⬝ (vec3.mk x y z)
-    = vec3.mk ((vec3.mk 1 0 0) ⬝ (vec3.mk x y z))
-      ((vec3.mk 0 1 0) ⬝ (vec3.mk x y z))
-      ((vec3.mk 0 0 1) ⬝ (vec3.mk x y z))
-      : by refl
-    ... = vec3.mk (1 * x + 0 * y + 0 * z) (0 * x + 1 * y + 0 * z) (0 * x + 0 * y + 1 * z)
-      : by refl
-    ... = vec3.mk x y z
-      : by norm_num,
+  simp
 end
 
 lemma linear_operator_mul_linear_operator (A B : mat3) :
@@ -327,8 +318,10 @@ lemma linear_operator_mul_linear_operator (A B : mat3) :
 begin
   apply linear_map.ext,
   intro v,
+  cases' v,
   simp,
-  apply (mat_dot_vec_assoc A B v).symm,
+  repeat {apply and.intro},
+  repeat {ring}
 end
 
 end mat3
