@@ -45,7 +45,7 @@ variables {G : Type} [group G]
   end }
 
 @[simp] def is_equivalent (f g: G → mat3) [mat3_representation f] [mat3_representation g] :
-  ∃(A : invertible_mat3)
+  ∃(A : invertible_mat3), f = g ≃ A :=
 
 end mat3_representation
 

@@ -88,15 +88,7 @@ namespace invertible_mat3
 
 @[ext] theorem ext {A B : invertible_mat3} :
   A.val = B.val → A = B :=
-begin
-  intro h,
-  cases' A with A _,
-  cases' B with B _,
-  simp at h,
-  simp,
-  assumption
-end
-
+subtype.eq
 
 @[simps] def mul (A B : invertible_mat3) : invertible_mat3 :=
 ⟨A.val * B.val, begin

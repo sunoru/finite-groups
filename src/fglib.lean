@@ -6,6 +6,7 @@ import data.matrix.notation
 import data.real.basic
 import data.vector
 import linear_algebra.multilinear.basic
+import tactic.fin_cases
 import tactic.induction
 
 set_option pp.beta true

@@ -25,13 +25,31 @@ end
 
 /-
   `vec3` is equivalent to `vector ℝ 3`.
-  We can firstly define the latter as a setoid
 -/
-def to_vector (v : vec3) : vector ℝ 3
+@[simp] def to_vector (v : vec3) : vector ℝ 3
 := ⟨[v.x, v.y, v.z], by refl ⟩
-def from_vector (v : vector ℝ 3) : vec3
-:= ⟨v.nth 1, v.nth 2, v.nth 3⟩
-
+@[simp] def from_vector (v : vector ℝ 3) : vec3
+:= ⟨v.nth 0, v.nth 1, v.nth 2⟩
+lemma from_vector_eq (v₁ v₂ : vector ℝ 3) (h : from_vector v₁ = from_vector v₂) :
+  v₁ = v₂ :=
+-- sorry
+begin
+  ext,
+  simp only [from_vector, vector.nth] at h,
+  cases' h with h₁ h,
+  cases' h with h₂ h₃,
+  fin_cases m,
+  repeat { assumption }
+end
+def equiv_vector : vec3 ≃ vector ℝ 3 :=
+{ to_fun := to_vector,
+  inv_fun := from_vector,
+  left_inv := by intro v; ext; simp [vector.nth],
+  right_inv := begin
+    intro v,
+    apply from_vector_eq,
+    simp [vector.nth]
+  end }
 
 @[simp] def zero : vec3 := ⟨0, 0, 0⟩
 
