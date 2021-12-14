@@ -1,18 +1,11 @@
 import ..fglib
-import .representation
+import .invertible_mat3
 import .linear_space3
+import .representation
 
 namespace FG
 
-/- Representation -/
--- @[simps] instance linear_mat3
-
-def is_linear_mat3 (A : mat3) : Prop :=
-  true
-def linear_mat3 := { A : mat3 | is_linear_mat3 A }
-
--- namespace linear_mat3
--- namespace mat3
+/- ## mat3 Representation -/
 
 class mat3_representation {G : Type} [group G]
   (f : G → mat3) :=
@@ -21,7 +14,10 @@ class mat3_representation {G : Type} [group G]
 
 namespace mat3_representation
 
-instance representation {G : Type} [group G] (f : G → mat3)
+variables {G : Type} [group G] 
+
+/- `mat3_representation` is a `representation G ℝ vec3` -/
+@[simps] instance representation (f : G → mat3)
   [mat3_representation f] : representation G ℝ vec3 :=
 { map := λg, (f g).linear_operator,
   id_mapped := by calc (f 1).linear_operator = (1 : mat3).linear_operator
@@ -47,6 +43,9 @@ instance representation {G : Type} [group G] (f : G → mat3)
     repeat { apply and.intro },
     repeat { ring }
   end }
+
+@[simp] def is_equivalent (f g: G → mat3) [mat3_representation f] [mat3_representation g] :
+  ∃(A : invertible_mat3)
 
 end mat3_representation
 

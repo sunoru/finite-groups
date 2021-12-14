@@ -332,6 +332,29 @@ begin
   repeat {apply and.intro},
   repeat {ring}
 end
+
+@[simp] def transpose (A : mat3) : mat3 :=
+  ⟨⟨A.x.x, A.y.x, A.z.x⟩,
+   ⟨A.x.y, A.y.y, A.z.y⟩,
+   ⟨A.x.z, A.y.z, A.z.z⟩⟩
+
+@[simp] def det (A : mat3) : ℝ :=
+  A.x.x * (A.y.y * A.z.z - A.y.z * A.z.y) -
+  A.x.y * (A.y.x * A.z.z - A.y.z * A.z.x) +
+  A.x.z * (A.y.x * A.z.y - A.y.y * A.z.x)
+
+@[simp] lemma det_mul_det (A B : mat3) :
+  det (A * B) = det A * det B :=
+by simp; ring
+
+@[simp] lemma det_one :
+  det 1 = 1 :=
+by simp
+
+@[simp] lemma det_zero :
+  det 0 = 0 :=
+by simp
+
 end mat3
 
 -- end linear_space3
