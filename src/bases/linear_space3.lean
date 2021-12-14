@@ -26,13 +26,16 @@ end
 /-
   `vec3` is equivalent to `vector ℝ 3`.
 -/
-@[simp] def to_vector (v : vec3) : vector ℝ 3
-:= ⟨[v.x, v.y, v.z], by refl ⟩
-@[simp] def from_vector (v : vector ℝ 3) : vec3
-:= ⟨v.nth 0, v.nth 1, v.nth 2⟩
-lemma from_vector_eq (v₁ v₂ : vector ℝ 3) (h : from_vector v₁ = from_vector v₂) :
+def vector3 : Type := vector ℝ 3
+
+@[simp] def to_vector (v : vec3) : vector3 :=
+  ⟨[v.x, v.y, v.z], by refl ⟩
+
+@[simp] def from_vector (v : vector3) : vec3 :=
+  ⟨v.nth 0, v.nth 1, v.nth 2⟩
+
+lemma from_vector_eq (v₁ v₂ : vector3) (h : from_vector v₁ = from_vector v₂) :
   v₁ = v₂ :=
--- sorry
 begin
   ext,
   simp only [from_vector, vector.nth] at h,
@@ -41,6 +44,7 @@ begin
   fin_cases m,
   repeat { assumption }
 end
+
 def equiv_vector : vec3 ≃ vector ℝ 3 :=
 { to_fun := to_vector,
   inv_fun := from_vector,
@@ -156,6 +160,47 @@ begin
   simp at *,
   assumption
 end
+
+def matrix3 : Type := matrix (fin 3) (fin 3) ℝ
+
+@[simp] def to_matrix (A : mat3) : matrix3 :=
+![![A.x.x, A.x.y, A.x.z],
+  ![A.y.x, A.y.y, A.y.z],
+  ![A.z.x, A.z.y, A.z.z]]
+
+@[simp] def from_matrix (A : matrix3) : mat3 :=
+⟨ ⟨A 0 0, A 0 1, A 0 2⟩,
+  ⟨A 1 0, A 1 1, A 1 2⟩,
+  ⟨A 2 0, A 2 1, A 2 2⟩ ⟩
+
+lemma from_matrix_eq (A₁ A₂ : matrix3) (h : from_matrix A₁ = from_matrix A₂) :
+  A₁ = A₂ :=
+begin
+  ext,
+  simp only [from_matrix] at h,
+  rcases h with ⟨h₁, h₂, h₃⟩,
+  fin_cases i,
+  repeat { fin_cases j,
+    repeat { simp [h₁, h₂, h₃] } }
+end
+
+def equiv_matrix : mat3 ≃ matrix3 :=
+{ to_fun := to_matrix,
+  inv_fun := from_matrix,
+  left_inv := begin
+    intro A,
+    ext,
+    simp,
+    repeat { apply and.intro },
+    { cases' A.x, refl },
+    { cases' A.y, refl },
+    { cases' A.z, refl }
+  end,
+  right_inv := begin
+    intro v,
+    apply from_matrix_eq,
+    simp
+  end }
 
 @[simp] def zero : mat3 := ⟨vec3.zero, vec3.zero, vec3.zero⟩
 
