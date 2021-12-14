@@ -41,4 +41,5 @@ class representation (G : Type) (R : Type*) (M : Type*)
 ( id_mapped  : map 1 = 1 )
 ( mul_mapped : ∀g₁ g₂, map g₁ * map g₂ = map (g₁ * g₂) )
 
+
 end FG

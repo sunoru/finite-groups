@@ -1,4 +1,5 @@
 import ...fglib
+import ..matrix_representation
 import ..representation
 import .invertible_mat3
 import .data
@@ -7,14 +8,18 @@ namespace FG
 
 /- ## mat3 Representation -/
 
-class mat3_representation {G : Type} [group G]
-  (D : G → mat3) :=
+structure mat3_representation {G : Type} [group G]
+  (D : G → mat3)
+  extends matrix_representation 3 G :=
 ( id_mapped  : D 1 = 1 )
 ( mul_mapped : ∀g₁ g₂, D g₁ * D g₂ = D (g₁ * g₂) )
 
 namespace mat3_representation
 
 variables {G : Type} [group G] 
+
+@[simps] instance matrix_representation 
+( to_matrix := λ(g : G), (D g).to_matrix )
 
 /- `mat3_representation` is a `representation G ℝ vec3` -/
 @[simps] instance representation (D : G → mat3)
