@@ -1,5 +1,5 @@
-import ..fglib
-import .representation
+import ...fglib
+import ..representation
 
 namespace FG
 
@@ -417,6 +417,10 @@ by simp
 @[simp] lemma det_zero :
   det 0 = 0 :=
 by simp
+
+@[simp] lemma transpose_det (A : mat3) :
+  det (transpose A) = det A :=
+by simp; ring
 
 end mat3
 

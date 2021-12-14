@@ -1,6 +1,6 @@
-import ..fglib
-import .representation
-import .linear_space3
+import ...fglib
+import ..representation
+import .data
 
 namespace FG
 
@@ -10,6 +10,19 @@ namespace mat3
 
 def is_invertible (A : mat3) : Prop :=
   ∃(B : mat3), A * B = 1
+
+/- ### Unitary operator -/
+@[simp] def is_unitary (A : mat3) : Prop :=
+  A * A.transpose = 1
+
+lemma unitary_is_inverible (A : mat3) :
+  is_unitary A → is_invertible A :=
+begin
+  intro h,
+  use A.transpose,
+  assumption
+end
+
 
 noncomputable def inverse (A : mat3) : mat3 :=
 begin
@@ -31,7 +44,6 @@ end
 @[simp] theorem exists_inverse (A : mat3) (h : A.det ≠ 0) :
   A * A.inverse = 1 :=
 sorry
-
 
 @[simp] lemma invertible_det_ne_zero (A : mat3) :
   is_invertible A → A.det ≠ 0 :=
@@ -172,6 +184,17 @@ end
   mul_one := mul_one,
   mul_assoc := mul_assoc,
   mul_left_inv := mul_left_inv }
+
+@[simps] def transpose (A : invertible_mat3) : invertible_mat3 :=
+⟨A.val.transpose, begin
+  apply mat3.det_ne_zero_invertible,
+  rw mat3.transpose_det,
+  apply mat3.invertible_det_ne_zero,
+  exact A.property
+end⟩
+
+@[simp] def is_unitary (A : invertible_mat3) : Prop :=
+  A.val.is_unitary
 
 end invertible_mat3
 

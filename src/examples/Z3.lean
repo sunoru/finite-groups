@@ -1,7 +1,6 @@
 import ..fglib
 import ..bases.finite_group
-import ..bases.linear_space3
-import ..bases.mat3_representation
+import ..bases.linear_space3.basic
 import ..bases.representation
 
 namespace FG
@@ -79,7 +78,9 @@ def rep2 : Z₃ → mat3
   ⟨1, 0, 0⟩
 ⟩
 
-@[simps] instance rep2.representation : mat3_representation rep2 :=
+namespace rep2
+
+@[simps] instance representation : mat3_representation rep2 :=
 { id_mapped := by calc
     (1 : Z₃).rep2 = mat3.I
       : by refl,
@@ -91,6 +92,18 @@ def rep2 : Z₃ → mat3
       repeat { simp [rep2, group.mul] }
     }
   end }
+
+/- `P` is the projection operator of the invariant subspace -/
+lemma is_reducible : mat3_representation.is_reducible rep2 :=
+begin
+  let P : mat3 := ⟨⟨1/3, 1/3, 1/3⟩, ⟨1/3, 1/3, 1/3⟩, ⟨1/3, 1/3, 1/3⟩⟩,
+  apply exists.intro P,
+  intro x,
+  cases' x,
+  repeat { simp [rep2], ring }
+end
+
+end rep2
 
 end Z₃
 
