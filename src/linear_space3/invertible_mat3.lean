@@ -1,5 +1,5 @@
-import ...fglib
-import ..representation
+import ..fglib
+import ..basic
 import .data
 
 namespace FG

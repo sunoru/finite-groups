@@ -1,5 +1,5 @@
-import ...fglib
-import ..representation
+import ..fglib
+import ..basic
 
 namespace FG
 
@@ -13,7 +13,7 @@ structure vec3 :=
 
 namespace vec3
 
-@[ext] theorem ext {a b : vec3} :
+@[ext] theorem ext (a b : vec3) :
   a.x = b.x ∧ a.y = b.y ∧ a.z = b.z → a = b :=
 begin
   intro h,
@@ -245,7 +245,7 @@ def equiv_matrix : mat3 ≃ matrix3 :=
     simp,
     repeat {apply and.intro},
     /-
-      Why `refl` cannot be directly used here? 
+      Why `refl` cannot be directly used here?
       ```
       invalid apply tactic, failed to unify
         {x := x.x, y := x.y, z := x.z} = x

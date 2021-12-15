@@ -1,6 +1,5 @@
-import ...fglib
-import ..matrix_representation
-import ..representation
+import ..fglib
+import ..basic
 import .invertible_mat3
 import .data
 
@@ -8,18 +7,19 @@ namespace FG
 
 /- ## mat3 Representation -/
 
-structure mat3_representation {G : Type} [group G]
+class mat3_representation {G : Type} [group G]
   (D : G → mat3)
-  extends matrix_representation 3 G :=
+  :=
+  -- extends matrix_representation 3 G :=
 ( id_mapped  : D 1 = 1 )
 ( mul_mapped : ∀g₁ g₂, D g₁ * D g₂ = D (g₁ * g₂) )
 
 namespace mat3_representation
 
-variables {G : Type} [group G] 
+variables {G : Type} [group G]
 
-@[simps] instance matrix_representation 
-( to_matrix := λ(g : G), (D g).to_matrix )
+-- @[simps] instance matrix_representation
+-- ( to_matrix := λ(g : G), (D g).to_matrix )
 
 /- `mat3_representation` is a `representation G ℝ vec3` -/
 @[simps] instance representation (D : G → mat3)
@@ -64,7 +64,7 @@ variables {G : Type} [group G]
 @[simp] def is_irreducible (D : G → mat3) [mat3_representation D] : Prop :=
   ¬ is_reducible D
 
--- @[simp] 
+-- @[simp]
 -- @[simp] def is_completely_reducible (D : G → mat3) [mat3_representation D] : Prop :=
 --     ∃(Q )
 --   ∃(P : mat3), ∀(x : G), P * (D x) * P = (D x) * P ∧ P * P = 1
