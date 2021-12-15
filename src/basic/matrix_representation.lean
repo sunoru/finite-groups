@@ -12,6 +12,6 @@ namespace FG
 
 class matrix_representation (n : ℕ) (G : Type) [group G]
   extends representation G ℂ (nvector n) :=
-  (to_matrix : G → square_matrix n)
+  (to_matrix : G → invertible_matrix n)
 
 end FG
