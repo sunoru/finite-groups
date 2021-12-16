@@ -9,11 +9,15 @@ namespace FG
   ## Matrix Representation
 -/
 
-/- `invertible_matrix` is a representation -/
+/-
+  `invertible_matrix` (**genearal linear group**) is a
+  **representation** of a **group** `G` in matrix form,
+  on a **vector space** `V` over the **field** `ℂ`.
+ -/
 
 class matrix_representation (n : ℕ) (G : Type) [finite_group G]
-  extends representation G R (nvector n) :=
+  extends representation G ℂ (vec n) :=
   (to_matrix : G → invertible_matrix n)
-  (map := λx (to_matrix x).to_linear_operator)
+  (map := λ(x : G), (to_matrix x).to_linear_operator)
 
 end FG

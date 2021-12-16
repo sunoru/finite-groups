@@ -3,66 +3,35 @@ import .representation
 
 namespace FG
 
+/- # Linear Space -/
+
 /- ## Vector -/
 
-def vec (n : ℕ) := (fin (n + 1) → ℂ)  -- := vector ℂ (n + 1)
+def vec (n : ℕ) := (fin (n + 1) → ℂ)
 
 namespace vec
 
 variables {n : ℕ}
 
--- @[simp] def to_func (v : vec n) (i : fin (n + 1)) : ℂ :=
--- vector.nth v i
-
--- @[simp] def from_func (f : fin (n + 1) → ℂ) : vec n :=
--- vector.of_fn f
-
 @[ext] theorem ext (v w : vec n) :
   (∀(i : fin (n + 1)), v i = w i) → v = w :=
 funext
--- vector.ext
 
 @[simp] def zero : vec n :=
   λ_, 0
--- vector.repeat 0 (n + 1)
+
+@[simp] def map (f : ℂ → ℂ) (v : vec n) : vec n :=
+  λi, f (v i)
+
+@[simp] def map₂ (f : ℂ → ℂ → ℂ) (v w : vec n) : vec n :=
+  λi, f (v i) (w i)
 
 @[simp] def add (v w : vec n) : vec n :=
-  λi, v i + w i
--- vector.map₂ (+) v w
+  map₂ (+) v w
 
-/-
-  ~Notes: Is there a better way to do this..?~ 
--/
 @[simp] lemma mapped₂_nth (f : ℂ → ℂ → ℂ) (v w : vec n) :
-  -- ∀(i : fin (n + 1)), (vector.map₂ f v w).nth i = f (v.nth i) (w.nth i) :=
-  ∀(i : fin (n + 1)), (vector.map₂ f v w).nth i = f (v.nth i) (w.nth i) :=
-begin
-  intro i,
-  induction' n,
-  { fin_cases i,
-    cases' v with v hv,
-    cases' w with w hw,
-    cases' v with v₀,
-    { contradiction },
-    { cases' w with w₀,
-      { contradiction },
-      { simp [vector.nth, vector.map₂] }}
-  },
-  {
-    -- cases' i with i hi,
-    -- cases' v with v hv,
-    -- cases' w with w hw,
-    -- cases' v with v₀,
-    -- { contradiction },
-    -- { cases' w with w₀,
-    --   { contradiction },
-    --   { cases' i,
-    --     { simp [vector.nth, vector.map₂] },
-    --     { simp [vector.nth, vector.map₂],
-    --       } } }
-    sorry
-  }
-end
+  ∀(i : fin (n + 1)), (map₂ f v w) i = f (v i) (w i) :=
+by intro i; simp
 
 @[simps] instance : add_comm_monoid (vec n) :=
 { zero := zero,
@@ -71,13 +40,13 @@ end
     intros a b c,
     apply ext,
     intro i,
-    calc vector.nth ((a.add b).add c) i = vector.nth (a.add b) i + vector.nth c i
+    calc (a.add b).add c i = a.add b i + c i
         : by apply mapped₂_nth
-      ... = vector.nth a i + vector.nth b i + vector.nth c i
+      ... = a i + b i + c i
         : by rw add; rw mapped₂_nth (+) a b
-      ... = vector.nth a i + vector.nth (b.add c) i
+      ... = a i + b.add c i
         : by rw [add, mapped₂_nth (+) b c, add_assoc]
-      ... = vector.nth (a.add (b.add c)) i
+      ... = (a.add (b.add c)) i
         : (mapped₂_nth (+) a (b.add c) i).symm
   end,
   zero_add := begin
@@ -96,16 +65,16 @@ end
     intros a b,
     apply ext,
     intro i,
-    calc vector.nth (a.add b) i = a.nth i + b.nth i
+    calc a.add b i = a i + b i
         : by apply mapped₂_nth
-      ... = b.nth i + a.nth i
+      ... = b i + a i
         : by rw add_comm
-      ... = (b.add a).nth i
+      ... = b.add a i
         : by rw [add, mapped₂_nth (+) b a]
   end }
 
 def smul (c : ℂ) (v : vec n) : vec n :=
-  vector.map (λx, c * x) v
+  map (λx, c * x) v
 
 @[simps] instance : module ℂ (vec n) :=
 { smul := smul,
@@ -266,10 +235,9 @@ end
   A.det ≠ 0 ↔ A.is_invertible :=
 iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
 
-
 @[simp] def mul_vec (A : square_matrix n) (v : vec n) :
   vec n :=
-vec.from_func (A.mul_vec (v.to_func))
+A.mul_vec v
 
 instance : module (square_matrix n) (vec n) :=
 { smul := mul_vec,
@@ -287,20 +255,17 @@ instance : module (square_matrix n) (vec n) :=
     intros v w,
     apply vec.ext,
     intro i,
-    simp [ matrix.mul_vec, vec.to_func,
+    simp [ matrix.mul_vec,
       matrix.dot_product, matrix.dot_product_add,
-      mul_add, finset.sum_add_distrib ]
+      mul_add, finset.sum_add_distrib ],
   end,
   map_smul' := begin
     intros a v,
-    apply vec.ext,
-    intro i,
-    have h := matrix.dot_product_smul a (A i) v.to_func,
-    simp [matrix.mul_vec, vec.to_func, matrix.dot_product_smul,
-      mul_add],
-    sorry
+    have h := (matrix.mul_vec_lin A).map_smul' a v,
+    simp at h,
+    simp [mul_vec],
+    exact h,
   end }
-
 
 end square_matrix
 
@@ -309,6 +274,8 @@ end square_matrix
 -/
 def invertible_matrix (n : ℕ) :=
   { A : square_matrix n // A.is_invertible }
+
+-- Alternative:
   -- {A : square_matrix n // A.det ≠ 0}
 
 namespace invertible_matrix
@@ -362,6 +329,11 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
   ⟨1, (1 : square_matrix n).det_ne_zero_invertible
     (ne_zero_of_eq_one square_matrix.det_one)⟩
 
+/-
+  This group of `n×n` invertible matrices is called
+  **General Linear Group** over the field of complex numbers,
+  and is a complex **Lie Group** of complex dimention `n²`.
+-/
 @[simps] noncomputable instance : group (invertible_matrix n) :=
 { mul := mul,
   one := one,
@@ -389,6 +361,31 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
       : by refl
     ... = one
       : sorry
+  end }
+
+@[simp] def mul_vec (A : invertible_matrix n) (v : vec n) :
+  vec n :=
+A.val.mul_vec v
+
+/- `invertible_matrix` is not a `ring`, which means it is not a `module` over `vec n`. -/
+
+@[simp] def to_linear_operator (A : invertible_matrix n) :
+  linear_operator ℂ (vec n) :=
+{ to_fun := λv, A.mul_vec v,
+  map_add' := begin
+    intros v w,
+    apply vec.ext,
+    intro i,
+    simp [ matrix.mul_vec,
+      matrix.dot_product, matrix.dot_product_add,
+      mul_add, finset.sum_add_distrib ],
+  end,
+  map_smul' := begin
+    intros a v,
+    have h := (matrix.mul_vec_lin A.val).map_smul' a v,
+    simp at h,
+    simp [mul_vec],
+    exact h,
   end }
   
 end invertible_matrix
