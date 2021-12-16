@@ -1,7 +1,6 @@
-import ..fglib
-import ..basic.finite_group
-import ..basic.representation
-import ..linear_space3
+import ...fglib
+import ...basic
+import ...linear_space3
 
 namespace FG
 
@@ -25,8 +24,8 @@ inductive Z₃ : Type
 namespace Z₃
 
 @[simp] def mul : Z₃ → Z₃ → Z₃
-| e y := y
 | x e := x
+| e y := y
 | a a := b
 | a b := e
 | b a := e

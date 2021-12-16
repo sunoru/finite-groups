@@ -160,15 +160,29 @@ instance : module (square_matrix n) (vec n) :=
     exact h,
   end }
 
-def conj_transpose (A : square_matrix n) : square_matrix n :=
+@[simp] def conj_transpose (A : square_matrix n) : square_matrix n :=
   matrix.conj_transpose A
 
 @[simp] lemma conj_transpose_det (A : square_matrix n) :
   A.conj_transpose.det = star A.det :=
 by apply matrix.det_conj_transpose
 
-def is_unitary (A : square_matrix n) : Prop :=
+@[simp] def is_unitary (A : square_matrix n) : Prop :=
   A.conj_transpose = A
+
+
+@[simp] def det2 (A : square_matrix 1) : ℂ :=
+  A 0 0 * A 1 1 - A 0 1 * A 1 0
+
+/- Too complicated to prove this? -/
+lemma det2_eq (A : square_matrix 1) :
+  A.det = A.det2 :=
+sorry
+
+meta def invertible_det2 : tactic unit :=
+do
+  tactic.applyc `FG.square_matrix.det_ne_zero_invertible,
+  `[simp [FG.square_matrix.det2_eq]]
 
 end square_matrix
 

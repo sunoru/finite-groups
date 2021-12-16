@@ -27,6 +27,10 @@ def to_func : block_diagonal → matrix_func
   square_matrix (length A - 1)
 | ⟨i, _⟩ ⟨j, _⟩ := A.to_func i j
 
+@[simp] def to_matrix_n (A : block_diagonal) (n : ℕ) :
+  square_matrix n
+| ⟨i, _⟩ ⟨j, _⟩ := A.to_func i j
+
 /- Have to reduce over block_diagonal instead of block_diagonal since the length is unknown-/
 def reduce {α : Type} (f : α → block_diagonal → α)
   : α → block_diagonal → α

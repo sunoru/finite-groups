@@ -14,14 +14,14 @@ namespace FG
   on a **vector space** `V` over the **field** `ℂ`.
  -/
 
-structure matrix_representation (n : ℕ) (G : Type) [finite_group G] :=
+structure matrix_representation (n : ℕ) (G : Type) [group G] :=
 (f          : G → invertible_matrix n)
 (id_mapped  : f 1 = 1 )
 (mul_mapped : ∀z₁ z₂, f z₁ * f z₂ = f (z₁ * z₂) )
 
 namespace matrix_representation
 
-variables {n : ℕ} {G : Type} [finite_group G]
+variables {n : ℕ} {G : Type} [group G]
 
 @[ext] theorem ext (D D' : matrix_representation n G) :
   D.f = D'.f → D = D' :=
@@ -100,20 +100,17 @@ end
   ∃(P : invertible_matrix n), ∀(x : G), P * (D.f x) * P = (D.f x) * P
 
 @[simp] def is_irreducible (D : matrix_representation n G) : Prop :=
-  ¬ is_reducible D
+  ¬is_reducible D
 
-def direct_sum {n₁ : ℕ} {n₂ : ℕ}
-  (D₁ : matrix_representation n₁ G) (D₂ : matrix_representation n₂ G) :
-  matrix_representation (n₁ + n₂ + 1) G :=
-{ f := λ(z : G), block (D₁.f z) (D₂.f z),
-  id_mapped := sorry,
-  mul_mapped := sorry }
-
-def block_diagonal_form (D : matrix_representation n G) : Prop :=
-  
+def is_block_diagonal (D : matrix_representation n G) : Prop :=
+  ∀z, ∃(A : block_diagonal), A.length - 1 = n → (D.f z).val = A.to_matrix_n n
 
 @[simp] def is_completely_reducible (D : matrix_representation n G) : Prop :=
-  ∃(D' : invertible_matrix n), D.is_equivalent D' ∧ D.is_diagonal
+  ∃(D' : matrix_representation n G), is_equivalent D D' ∧ is_block_diagonal D'
+
+noncomputable def irreducible_representation (D : matrix_representation n G) (h : D.is_completely_reducible)
+  : matrix_representation n G :=
+classical.some h
 
 end matrix_representation
 

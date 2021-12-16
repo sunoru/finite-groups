@@ -7,6 +7,8 @@ namespace FG
 
 /-
   ## Invertible Matrix
+
+  Defined as a subtype of `square_matrix`.
 -/
 def invertible_matrix (n : ℕ) :=
   { A : square_matrix n // A.is_invertible }
@@ -136,7 +138,7 @@ end⟩
 
 @[simp] def is_unitary (A : invertible_matrix n) : Prop :=
   A.val.is_unitary
-  
+
 end invertible_matrix
 
 

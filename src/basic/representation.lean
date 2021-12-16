@@ -37,7 +37,7 @@ end linear_operator
 -/
 
 class representation (G : Type) (R : Type*) (M : Type*)
-  [finite_group G] [ring R] [add_comm_monoid M] [module R M] :=
+  [group G] [ring R] [add_comm_monoid M] [module R M] :=
 ( map : G → linear_operator R M )
 ( id_mapped  : map 1 = 1 )
 ( mul_mapped : ∀g₁ g₂, map g₁ * map g₂ = map (g₁ * g₂) )
