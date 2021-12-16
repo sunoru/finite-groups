@@ -34,7 +34,7 @@ variables {n : ℕ}
   add_comm := matrix.add_comm_group.add_comm,
   neg := matrix.has_neg.neg,
   add_left_neg := matrix.add_group.add_left_neg,
-  mul := matrix.has_mul.mul,
+  mul := matrix.mul,
   one := matrix.has_one.one,
   mul_assoc := λA B C, matrix.mul_assoc A B C,
   one_mul := sorry,
@@ -170,6 +170,18 @@ by apply matrix.det_conj_transpose
 @[simp] def is_unitary (A : square_matrix n) : Prop :=
   A.conj_transpose = A
 
+
+@[simp] def det1 (A : square_matrix 0) : ℂ :=
+  A 0 0
+
+lemma det1_eq (A : square_matrix 0) :
+  A.det = A.det1 :=
+by simp
+
+meta def invertible_det1 : tactic unit :=
+do
+  tactic.applyc `FG.square_matrix.det_ne_zero_invertible,
+  `[simp [FG.square_matrix.det1_eq]]
 
 @[simp] def det2 (A : square_matrix 1) : ℂ :=
   A 0 0 * A 1 1 - A 0 1 * A 1 0

@@ -89,8 +89,7 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
   mul_one := begin
     intro a,
     apply ext,
-    simp,
-    apply square_matrix.ring.mul_one
+    simp
   end,
   inv := inv,
   mul_left_inv := begin

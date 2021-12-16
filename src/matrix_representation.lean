@@ -58,7 +58,29 @@ end
 /- ## Equivalent Representations -/
 
 @[simp] def is_equivalent (D D' : matrix_representation n G) : Prop :=
-  ∃(A : invertible_matrix n), ∀(z : G), D.f z = A.inv * (D'.f z) * A
+  ∃(A : invertible_matrix n), ∀(z : G), D.f z = A⁻¹ * (D'.f z) * A
+
+lemma is_equivalent_symm (D D' : matrix_representation n G) :
+  is_equivalent D D' → is_equivalent D' D :=
+begin
+  intro h,
+  cases' h,
+  use w⁻¹,
+  intro z,
+  rw h z,
+  rw mul_assoc,
+  rw mul_assoc,
+  rw mul_right_inv,
+  rw ←mul_assoc,
+  rw ←mul_assoc,
+  rw mul_left_inv,
+  rw one_mul,
+  rw mul_one
+end
+
+lemma is_equivalent_iff (D D' : matrix_representation n G) :
+  is_equivalent D D' ↔ is_equivalent D' D :=
+iff.intro (is_equivalent_symm D D') (is_equivalent_symm D' D)
 
 @[simp] def is_unitary (D : matrix_representation n G) : Prop :=
   ∀(z : G), (D.f z).is_unitary
@@ -97,7 +119,7 @@ end
   end }
 
 @[simp] def is_reducible (D : matrix_representation n G) : Prop :=
-  ∃(P : invertible_matrix n), ∀(x : G), P * (D.f x) * P = (D.f x) * P
+  ∃(P : square_matrix n), ∀(x : G), P * (D.f x).val * P = (D.f x).val * P
 
 @[simp] def is_irreducible (D : matrix_representation n G) : Prop :=
   ¬is_reducible D

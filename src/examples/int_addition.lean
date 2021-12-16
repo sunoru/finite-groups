@@ -11,26 +11,52 @@ namespace FG
 
 namespace example_int
 
-@[simp] def one : ℤ := 0
-@[simp] def mul (a b : ℤ) : ℤ := a + b
-@[simp] def inv (a : ℤ) : ℤ := -a
+structure group_int : Type :=
+( x : ℤ )
 
-instance : group ℤ :=
+namespace group_int
+
+-- @[simps] instance : has_coe int group_int :=
+-- { coe := λ x, { x := x } }
+-- @[simps] instance : has_coe group_int int :=
+-- { coe := λ x, x.x }
+
+@[simp] def one : group_int := { x := int.zero }
+@[simp] def mul (a b : group_int) : group_int := { x := int.add a.x b.x }
+@[simp] def inv (a : group_int) : group_int := { x := int.neg a.x }
+
+@[ext] theorem ext (a b : group_int) : a.x = b.x → a = b :=
+begin
+  intro h,
+  cases' a with a,
+  cases' b with b,
+  simp at h,
+  rw h
+end
+
+@[simp] lemma ext_iff (a b : group_int) : a.x = b.x ↔ a = b :=
+iff.intro (ext a b) (by intro h; rw h)
+
+instance : group group_int :=
 { one := one,
   mul := mul,
-  inv := has_neg.neg,
-  one_mul := by intro a; simp,
-  mul_one := by intro a; simp,
+  inv := inv,
+  one_mul := by intro a; cases' a; simp; refl,
+  mul_one := by intro a; cases' a; simp; refl,
   mul_assoc := by intros a b c; simp; ring,
   mul_left_inv := begin
     intro a,
-    have h : mul (inv a) a = one := by simp,
+    have h : mul (inv a) a = one := begin
+      cases' a,
+      simp,
+      apply int.add_group.add_left_neg
+    end,
     exact h
   end }
 
 /- Here is a representation -/
-def rep : matrix_representation 1 ℤ :=
-{ f := λx, ⟨![![1, x], ![0, 1]], by square_matrix.invertible_det2⟩,
+def rep : matrix_representation 1 group_int :=
+{ f := λx, ⟨![![1, x.x], ![0, 1]], by square_matrix.invertible_det2⟩,
   id_mapped := begin
     apply invertible_matrix.ext,
     simp,
@@ -42,11 +68,42 @@ def rep : matrix_representation 1 ℤ :=
   mul_mapped := begin
     intros z₁ z₂,
     apply invertible_matrix.ext,
-    simp,
-  -- ⊢ ![![1, ↑z₁], ![0, 1]] * ![![1, ↑z₂], ![0, 1]] = ![![1, ↑(z₁ * z₂)], ![0, 1]]
-    sorry
+    simp only [invertible_matrix.mul, invertible_matrix.group_mul],
+    cases' z₁ with x,
+    cases' z₂ with y,
+    have h : ({x := x} : group_int) * {x := y} = {x := x + y} := by refl,
+    rw h,
+    funext i j,
+    fin_cases i,
+    { fin_cases j,
+      { simp [vec.smul] },
+      { simp [vec.smul, add_comm] } },
+    { fin_cases j,
+      { simp [vec.smul] },
+      { simp [vec.smul] }
+    }
   end }
 
+/- The representation is reducible -/
+example : rep.is_reducible :=
+begin
+  let P : square_matrix 1 := ![![1, 0], ![0, 0]],
+  use P,
+  intro x,
+  cases' x,
+  funext i j,
+  fin_cases i,
+  { fin_cases j,
+    repeat { simp [rep, vec.smul] } },
+  { fin_cases j,
+    repeat { simp [rep, vec.smul] } }
+end
+
+/- But it is not completely reducible -/
+example : ¬rep.is_completely_reducible :=
+sorry
+
+end group_int
 
 end example_int
 
