@@ -1,7 +1,7 @@
 import ..fglib
-import ..bases.finite_group
-import ..bases.linear_space3.basic
-import ..bases.representation
+import ..basic.finite_group
+import ..basic.representation
+import ..linear_space3
 
 namespace FG
 

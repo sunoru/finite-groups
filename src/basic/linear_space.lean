@@ -1,7 +1,155 @@
 import ..fglib
-import data.pi
+import .representation
 
 namespace FG
+
+/- ## Vector -/
+
+def vec (n : ℕ) := (fin (n + 1) → ℂ)  -- := vector ℂ (n + 1)
+
+namespace vec
+
+variables {n : ℕ}
+
+-- @[simp] def to_func (v : vec n) (i : fin (n + 1)) : ℂ :=
+-- vector.nth v i
+
+-- @[simp] def from_func (f : fin (n + 1) → ℂ) : vec n :=
+-- vector.of_fn f
+
+@[ext] theorem ext (v w : vec n) :
+  (∀(i : fin (n + 1)), v i = w i) → v = w :=
+funext
+-- vector.ext
+
+@[simp] def zero : vec n :=
+  λ_, 0
+-- vector.repeat 0 (n + 1)
+
+@[simp] def add (v w : vec n) : vec n :=
+  λi, v i + w i
+-- vector.map₂ (+) v w
+
+/-
+  ~Notes: Is there a better way to do this..?~ 
+-/
+@[simp] lemma mapped₂_nth (f : ℂ → ℂ → ℂ) (v w : vec n) :
+  -- ∀(i : fin (n + 1)), (vector.map₂ f v w).nth i = f (v.nth i) (w.nth i) :=
+  ∀(i : fin (n + 1)), (vector.map₂ f v w).nth i = f (v.nth i) (w.nth i) :=
+begin
+  intro i,
+  induction' n,
+  { fin_cases i,
+    cases' v with v hv,
+    cases' w with w hw,
+    cases' v with v₀,
+    { contradiction },
+    { cases' w with w₀,
+      { contradiction },
+      { simp [vector.nth, vector.map₂] }}
+  },
+  {
+    -- cases' i with i hi,
+    -- cases' v with v hv,
+    -- cases' w with w hw,
+    -- cases' v with v₀,
+    -- { contradiction },
+    -- { cases' w with w₀,
+    --   { contradiction },
+    --   { cases' i,
+    --     { simp [vector.nth, vector.map₂] },
+    --     { simp [vector.nth, vector.map₂],
+    --       } } }
+    sorry
+  }
+end
+
+@[simps] instance : add_comm_monoid (vec n) :=
+{ zero := zero,
+  add := add,
+  add_assoc := begin
+    intros a b c,
+    apply ext,
+    intro i,
+    calc vector.nth ((a.add b).add c) i = vector.nth (a.add b) i + vector.nth c i
+        : by apply mapped₂_nth
+      ... = vector.nth a i + vector.nth b i + vector.nth c i
+        : by rw add; rw mapped₂_nth (+) a b
+      ... = vector.nth a i + vector.nth (b.add c) i
+        : by rw [add, mapped₂_nth (+) b c, add_assoc]
+      ... = vector.nth (a.add (b.add c)) i
+        : (mapped₂_nth (+) a (b.add c) i).symm
+  end,
+  zero_add := begin
+    intro a,
+    apply ext,
+    intro i,
+    simp,
+  end,
+  add_zero := begin
+    intro a,
+    apply ext,
+    intro i,
+    simp,
+  end,
+  add_comm := begin
+    intros a b,
+    apply ext,
+    intro i,
+    calc vector.nth (a.add b) i = a.nth i + b.nth i
+        : by apply mapped₂_nth
+      ... = b.nth i + a.nth i
+        : by rw add_comm
+      ... = (b.add a).nth i
+        : by rw [add, mapped₂_nth (+) b a]
+  end }
+
+def smul (c : ℂ) (v : vec n) : vec n :=
+  vector.map (λx, c * x) v
+
+@[simps] instance : module ℂ (vec n) :=
+{ smul := smul,
+  smul_zero := begin
+    intro a,
+    apply ext,
+    simp [smul]
+  end,
+  smul_add := begin
+    intros a v w,
+    apply ext,
+    intro i,
+    simp [smul],
+    ring
+  end,
+  zero_smul := begin
+    intro v,
+    apply ext,
+    simp [smul]
+  end,
+  one_smul := begin
+    intro v,
+    apply ext,
+    simp [smul]
+  end,
+  add_smul := begin
+    intros a v w,
+    apply ext,
+    intro i,
+    simp [smul],
+    ring
+  end,
+  mul_smul := begin
+    intros a v w,
+    apply ext,
+    intro i,
+    simp [smul],
+    ring
+  end }
+
+end vec
+
+
+
 /-
   ## Square Matrix
 
@@ -118,6 +266,42 @@ end
   A.det ≠ 0 ↔ A.is_invertible :=
 iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
 
+
+@[simp] def mul_vec (A : square_matrix n) (v : vec n) :
+  vec n :=
+vec.from_func (A.mul_vec (v.to_func))
+
+instance : module (square_matrix n) (vec n) :=
+{ smul := mul_vec,
+  one_smul := sorry,
+  mul_smul := sorry,
+  smul_zero := sorry,
+  smul_add := sorry,
+  zero_smul := sorry,
+  add_smul := sorry }
+
+@[simp] def to_linear_operator (A : square_matrix n) :
+  linear_operator ℂ (vec n) :=
+{ to_fun := λv, A.mul_vec v,
+  map_add' := begin
+    intros v w,
+    apply vec.ext,
+    intro i,
+    simp [ matrix.mul_vec, vec.to_func,
+      matrix.dot_product, matrix.dot_product_add,
+      mul_add, finset.sum_add_distrib ]
+  end,
+  map_smul' := begin
+    intros a v,
+    apply vec.ext,
+    intro i,
+    have h := matrix.dot_product_smul a (A i) v.to_func,
+    simp [matrix.mul_vec, vec.to_func, matrix.dot_product_smul,
+      mul_add],
+    sorry
+  end }
+
+
 end square_matrix
 
 /-
@@ -125,7 +309,7 @@ end square_matrix
 -/
 def invertible_matrix (n : ℕ) :=
   { A : square_matrix n // A.is_invertible }
-  -- {A : square_matrix n // A.det ≠ 1}
+  -- {A : square_matrix n // A.det ≠ 0}
 
 namespace invertible_matrix
 
@@ -206,150 +390,7 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
     ... = one
       : sorry
   end }
-
+  
 end invertible_matrix
-
-def nvector (n : ℕ) : Type := vector ℂ (n + 1)
-
-namespace nvector
-
-variables {n : ℕ}
-
-def to_func (v : nvector n) : fin (n + 1) → ℂ
-| i := vector.nth v i
-
-@[ext] theorem ext (v w : nvector n) :
-  (∀(i : fin (n + 1)), v.nth i = w.nth i) → v = w :=
-vector.ext
-
-@[simp] def zero : nvector n :=
-  vector.repeat 0 (n + 1)
-
-@[simp] def add (v w : nvector n) : nvector n :=
-  vector.map₂ (+) v w
-
-/- Notes: Is there a better way to do this..? -/
-@[simp] lemma mapped₂_nth (f : ℂ → ℂ → ℂ) (v w : nvector n) :
-  ∀(i : fin (n + 1)), (vector.map₂ f v w).nth i = f (v.nth i) (w.nth i) :=
-begin
-  intro i,
-  induction' n,
-  { fin_cases i,
-    cases' v with v hv,
-    cases' w with w hw,
-    cases' v with v₀,
-    { contradiction },
-    { cases' w with w₀,
-      { contradiction },
-      { simp [vector.nth, vector.map₂] }}
-  },
-  {
-    -- cases' i with i hi,
-    -- cases' v with v hv,
-    -- cases' w with w hw,
-    -- cases' v with v₀,
-    -- { contradiction },
-    -- { cases' w with w₀,
-    --   { contradiction },
-    --   { cases' i,
-    --     { simp [vector.nth, vector.map₂] },
-    --     { simp [vector.nth, vector.map₂],
-    --       } } }
-    sorry
-  }
-end
-
-@[simps] instance : add_comm_monoid (nvector n) :=
-{ zero := zero,
-  add := add,
-  add_assoc := begin
-    intros a b c,
-    apply ext,
-    intro i,
-    calc vector.nth ((a.add b).add c) i = vector.nth (a.add b) i + vector.nth c i
-        : by apply mapped₂_nth
-      ... = vector.nth a i + vector.nth b i + vector.nth c i
-        : by rw add; rw mapped₂_nth (+) a b
-      ... = vector.nth a i + vector.nth (b.add c) i
-        : by rw [add, mapped₂_nth (+) b c, add_assoc]
-      ... = vector.nth (a.add (b.add c)) i
-        : (mapped₂_nth (+) a (b.add c) i).symm
-  end,
-  zero_add := begin
-    intro a,
-    apply ext,
-    intro i,
-    simp,
-  end,
-  add_zero := begin
-    intro a,
-    apply ext,
-    intro i,
-    simp,
-  end,
-  add_comm := begin
-    intros a b,
-    apply ext,
-    intro i,
-    calc vector.nth (a.add b) i = a.nth i + b.nth i
-        : by apply mapped₂_nth
-      ... = b.nth i + a.nth i
-        : by rw add_comm
-      ... = (b.add a).nth i
-        : by rw [add, mapped₂_nth (+) b a]
-  end }
-
-@[simp] def smul (c : ℂ) (v : nvector n) : nvector n :=
-  vector.map (λx, c * x) v
-
-@[simps] instance : module ℂ (nvector n) :=
-{ smul := smul,
-  smul_zero := begin
-    intro a,
-    apply ext,
-    simp
-  end,
-  smul_add := begin
-    intros a v w,
-    apply ext,
-    intro i,
-    simp,
-    ring
-  end,
-  zero_smul := begin
-    intro v,
-    apply ext,
-    simp
-  end,
-  one_smul := begin
-    intro v,
-    apply ext,
-    simp
-  end,
-  add_smul := begin
-    intros a v w,
-    apply ext,
-    intro i,
-    simp,
-    ring
-  end,
-  mul_smul := begin
-    intros a v w,
-    apply ext,
-    intro i,
-    simp,
-    ring
-  end }
-
--- instance : module (square_matrix n) (nvector n) :=
--- { smul := matrix.mul_vec to_func}
--- { add_smul := begin
---     sorry
---   end,
---   zero_smul := begin
---     sorry
---   end }
-
-end nvector
 
 end FG

@@ -16,7 +16,7 @@ class mat3_representation {G : Type} [group G]
 
 namespace mat3_representation
 
-variables {G : Type} [group G]
+variables {G : Type} [finite_group G]
 
 -- @[simps] instance matrix_representation
 -- ( to_matrix := λ(g : G), (D g).to_matrix )
@@ -24,8 +24,8 @@ variables {G : Type} [group G]
 /- `mat3_representation` is a `representation G ℝ vec3` -/
 @[simps] instance representation (D : G → mat3)
   [mat3_representation D] : representation G ℝ vec3 :=
-{ map := λx, (D x).linear_operator,
-  id_mapped := by calc (D 1).linear_operator = (1 : mat3).linear_operator
+{ map := λx, (D x).to_linear_operator,
+  id_mapped := by calc (D 1).to_linear_operator = (1 : mat3).to_linear_operator
       : by rw _inst_2.id_mapped
     ... = 1
       : begin

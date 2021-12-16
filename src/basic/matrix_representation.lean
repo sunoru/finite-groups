@@ -1,6 +1,7 @@
 import ..fglib
-import .representation
+import .finite_group
 import .linear_space
+import .representation
 
 namespace FG
 
@@ -10,8 +11,9 @@ namespace FG
 
 /- `invertible_matrix` is a representation -/
 
-class matrix_representation (n : ℕ) (G : Type) [group G]
-  extends representation G ℂ (nvector n) :=
+class matrix_representation (n : ℕ) (G : Type) [finite_group G]
+  extends representation G R (nvector n) :=
   (to_matrix : G → invertible_matrix n)
+  (map := λx (to_matrix x).to_linear_operator)
 
 end FG

@@ -353,7 +353,7 @@ end
   smul_zero := by intro r; simp,
   zero_smul := by intro r; simp }
 
-@[simp] def linear_operator (A : mat3) : linear_operator ℝ vec3 :=
+@[simp] def to_linear_operator (A : mat3) : linear_operator ℝ vec3 :=
 { to_fun := λx, A • x,
   map_add' := begin
     intros x y,
@@ -369,7 +369,7 @@ end
   end }
 
 @[simp] lemma linear_operator_eq (A B : mat3) :
-  A = B → linear_operator A = linear_operator B :=
+  A = B → A.to_linear_operator = B.to_linear_operator :=
 begin
   intro h,
   apply linear_map.ext,
@@ -377,7 +377,7 @@ begin
   simp [h]
 end
 
-@[simp] lemma I_eq_id : linear_operator I = linear_map.id :=
+@[simp] lemma I_eq_id : to_linear_operator I = linear_map.id :=
 begin
   apply linear_map.ext,
   intro x,
@@ -386,7 +386,7 @@ begin
 end
 
 @[simp] lemma linear_operator_mul_linear_operator (A B : mat3) :
-  linear_operator A * linear_operator B = linear_operator (A * B) :=
+  A.to_linear_operator * B.to_linear_operator = to_linear_operator (A * B) :=
 begin
   apply linear_map.ext,
   intro v,
