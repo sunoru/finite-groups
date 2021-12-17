@@ -13,6 +13,7 @@ namespace FG
 
 def matrix_func : Type := ℕ → ℕ → ℂ
 
+/- Note that a `square_matrix n` is a `(n+1) × (n+1)` matrix. -/
 def square_matrix (n : ℕ) : Type := matrix (fin (n + 1)) (fin (n + 1)) ℂ
 
 namespace square_matrix
@@ -25,6 +26,10 @@ variables {n : ℕ}
   λ(i j : ℕ), if i < A.length ∧ j < A.length
     then A i j else 0
 
+@[simp] def I : square_matrix n :=
+  matrix.has_one.one
+
+/- `square_matrix n` is a module -/
 @[simps] instance : ring (square_matrix n) :=
 { zero := matrix.has_zero.zero,
   add := matrix.has_add.add,
@@ -42,6 +47,31 @@ variables {n : ℕ}
   left_distrib := sorry,
   right_distrib := sorry }
 
+/- `ℂ` is a module over `square_matrix` -/
+instance : module ℂ (square_matrix n) :=
+{ smul := λx A, λi j, x * A i j,
+  one_smul := sorry,
+  mul_smul := sorry,
+  smul_zero := sorry,
+  smul_add := sorry,
+  zero_smul := sorry,
+  add_smul := sorry }
+
+
+@[simp] def mul_vec (A : square_matrix n) (v : vec n) :
+  vec n :=
+A.mul_vec v
+
+/- `square_matrix n` is a module over `vec n` -/
+instance : module (square_matrix n) (vec n) :=
+{ smul := mul_vec,
+  one_smul := sorry,
+  mul_smul := sorry,
+  smul_zero := sorry,
+  smul_add := sorry,
+  zero_smul := sorry,
+  add_smul := sorry }
+
 @[simp] def det (A : square_matrix n) : ℂ :=
   matrix.det A
 
@@ -53,6 +83,10 @@ by simp
   det (0 : square_matrix n) = 0 :=
 by simp
 
+/- Finite dimensional matrices must have eigenvalues/eigenvectors. -/
+@[simp] lemma has_nonzero_eigenvalue_and_eigenvector (A : square_matrix n) : 
+  ∃ (x : ℂ) (v : vec n), x ≠ 0 ∧ v ≠ 0 ∧ (A - x • I).det = 0 ∧ (A - x • I) • v = 0 :=
+sorry
 
 def is_invertible (A : square_matrix n) : Prop :=
   ∃ (B : square_matrix n), B * A = 1
@@ -61,6 +95,7 @@ def is_invertible (A : square_matrix n) : Prop :=
   A * A = A → A = 0 ∨ A = 1 :=
 begin
   intro h,
+  -- TODO: This is wrong.
   sorry
 end
 
@@ -127,19 +162,6 @@ end
 @[simp] theorem det_ne_zero_iff (A : square_matrix n) :
   A.det ≠ 0 ↔ A.is_invertible :=
 iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
-
-@[simp] def mul_vec (A : square_matrix n) (v : vec n) :
-  vec n :=
-A.mul_vec v
-
-instance : module (square_matrix n) (vec n) :=
-{ smul := mul_vec,
-  one_smul := sorry,
-  mul_smul := sorry,
-  smul_zero := sorry,
-  smul_add := sorry,
-  zero_smul := sorry,
-  add_smul := sorry }
 
 @[simp] def to_linear_operator (A : square_matrix n) :
   linear_operator ℂ (vec n) :=
