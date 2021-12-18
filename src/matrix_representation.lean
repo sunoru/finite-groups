@@ -22,6 +22,7 @@ structure matrix_representation (n : ℕ) (G : Type) [group G] :=
 namespace matrix_representation
 
 variables {n : ℕ} {G : Type} [group G]
+  (D : matrix_representation n G)
 
 @[ext] theorem ext (D D' : matrix_representation n G) :
   D.f = D'.f → D = D' :=
@@ -33,7 +34,13 @@ begin
   exact h
 end
 
-@[simps] instance (D : matrix_representation n G) : representation G ℂ (vec n) :=
+@[simps] instance : has_coe (matrix_representation n G) (G → invertible_matrix n) :=
+{ coe := matrix_representation.f }
+
+@[simps] instance : has_coe_to_fun (matrix_representation n G) (λ_, G → invertible_matrix n) :=
+{ coe := λD, D.f }
+
+@[simps] instance : representation G ℂ (vec n) :=
 { map := λ(x : G), (D.f x).to_linear_operator,
   id_mapped := begin
     cases' D,
@@ -51,8 +58,7 @@ end
     simp [invertible_matrix.mul] at h,
     have h₂ := iff.elim_left subtype.ext_iff_val h,
     simp at h₂,
-    rw ←h₂,
-    refl
+    rw ←h₂
   end }
 
 /- ## Equivalent Representations -/
@@ -82,15 +88,15 @@ lemma is_equivalent_iff (D D' : matrix_representation n G) :
   is_equivalent D D' ↔ is_equivalent D' D :=
 iff.intro (is_equivalent_symm D D') (is_equivalent_symm D' D)
 
-@[simp] def is_unitary (D : matrix_representation n G) : Prop :=
+@[simp] def is_unitary : Prop :=
   ∀(z : G), (D.f z).is_unitary
 
 /- ## Reducible Representations -/
 
-/- **Similarity Transformation** is noncomputable because it depends on 
+/- **Similarity Transformation** is noncomputable because it depends on
   the group inv lemmas.-/
 @[simp] noncomputable def similarity_transformation
-    (D : matrix_representation n G) (S : invertible_matrix n)
+     (S : invertible_matrix n)
   : matrix_representation n G :=
 { f := λ(z : G), S⁻¹ * (D.f z) * S,
   id_mapped := begin
@@ -118,19 +124,27 @@ iff.intro (is_equivalent_symm D D') (is_equivalent_symm D' D)
         : by rw mul_assoc S⁻¹ _ _
   end }
 
-@[simp] def is_reducible (D : matrix_representation n G) : Prop :=
-  ∃(P : square_matrix n), ∀(x : G), P * (D.f x).val * P = (D.f x).val * P
+@[simp] def is_reducible_by (P : square_matrix n) : Prop :=
+  ∀(x : G), P * (D.f x).val * P = (D.f x).val * P
 
-@[simp] def is_irreducible (D : matrix_representation n G) : Prop :=
+@[simp] def is_reducible : Prop :=
+  ∃(P : square_matrix n), is_reducible_by D P
+
+@[simp] def is_irreducible : Prop :=
   ¬is_reducible D
 
-def is_block_diagonal (D : matrix_representation n G) : Prop :=
+def is_block_diagonal : Prop :=
   ∀z, ∃(A : block_diagonal), A.length - 1 = n → (D.f z).val = A.to_matrix_n n
 
-@[simp] def is_completely_reducible (D : matrix_representation n G) : Prop :=
+@[simp] def is_completely_reducible : Prop :=
   ∃(D' : matrix_representation n G), is_equivalent D D' ∧ is_block_diagonal D'
 
-noncomputable def irreducible_representation (D : matrix_representation n G) (h : D.is_completely_reducible)
+@[simp] lemma orthogonal_completely_reducible
+    (P : square_matrix n) (h : D.is_completely_reducible) :
+  D.is_reducible_by P → D.is_reducible_by (1 - P) :=
+sorry
+
+noncomputable def irreducible_representation (h : D.is_completely_reducible)
   : matrix_representation n G :=
 classical.some h
 

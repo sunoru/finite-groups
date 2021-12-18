@@ -3,8 +3,12 @@ import ..basic
 
 namespace FG
 
-/- General lemmas for vectors -/
--- section linear_space3
+/-
+
+## Vector
+
+I tried 
+ -/
 
 structure vec3 :=
 (x : ℝ)
@@ -63,7 +67,6 @@ def equiv_vector : vec3 ≃ vector ℝ 3 :=
 @[simp] def neg (a : vec3) : vec3 :=
   ⟨-a.x, -a.y, -a.z⟩
 
--- set_option trace.simplify.rewrite true
 @[simps] instance add_comm_group : add_comm_group vec3 :=
 { zero := zero,
   add  := add,
@@ -94,8 +97,6 @@ def equiv_vector : vec3 ≃ vector ℝ 3 :=
   a.x * b.x + a.y * b.y + a.z * b.z
 
 infixr ` ⋅ `:100 := dot
-
--- lemma dot_zero
 
 @[simp] def smul (c : ℝ) (v : vec3) : vec3 :=
   ⟨c * v.x, c * v.y, c * v.z⟩
@@ -141,6 +142,7 @@ infixr ` ⋅ `:100 := dot
 
 end vec3
 
+/- ### Matrix -/
 structure mat3 :=
 (x : vec3)
 (y : vec3)
@@ -423,7 +425,5 @@ by simp
 by simp; ring
 
 end mat3
-
--- end linear_space3
 
 end FG

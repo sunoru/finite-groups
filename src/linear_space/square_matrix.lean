@@ -18,11 +18,11 @@ def square_matrix (n : ℕ) : Type := matrix (fin (n + 1)) (fin (n + 1)) ℂ
 
 namespace square_matrix
 
-variables {n : ℕ}
+variables {n : ℕ} (A : square_matrix n)
 
 @[simp] def length : square_matrix n → ℕ := n + 1
 
-@[simp] def to_func (A : square_matrix n) : matrix_func :=
+@[simp] def to_func : matrix_func :=
   λ(i j : ℕ), if i < A.length ∧ j < A.length
     then A i j else 0
 
@@ -31,48 +31,31 @@ variables {n : ℕ}
 
 /- `square_matrix n` is a module -/
 @[simps] instance : ring (square_matrix n) :=
-{ zero := matrix.has_zero.zero,
-  add := matrix.has_add.add,
-  add_assoc := matrix.add_group.add_assoc,
-  zero_add := matrix.add_group.zero_add,
-  add_zero := matrix.add_group.add_zero,
-  add_comm := matrix.add_comm_group.add_comm,
-  neg := matrix.has_neg.neg,
-  add_left_neg := matrix.add_group.add_left_neg,
-  mul := matrix.mul,
-  one := matrix.has_one.one,
-  mul_assoc := λA B C, matrix.mul_assoc A B C,
-  one_mul := sorry,
-  mul_one := sorry,
-  left_distrib := sorry,
-  right_distrib := sorry }
+{ ..matrix.ring }
 
 /- `ℂ` is a module over `square_matrix` -/
 instance : module ℂ (square_matrix n) :=
-{ smul := λx A, λi j, x * A i j,
-  one_smul := sorry,
-  mul_smul := sorry,
-  smul_zero := sorry,
-  smul_add := sorry,
-  zero_smul := sorry,
-  add_smul := sorry }
+{ ..matrix.module }
 
 
-@[simp] def mul_vec (A : square_matrix n) (v : vec n) :
+@[simp] def mul_vec (v : vec n) :
   vec n :=
-A.mul_vec v
+matrix.mul_vec A v
 
 /- `square_matrix n` is a module over `vec n` -/
 instance : module (square_matrix n) (vec n) :=
 { smul := mul_vec,
-  one_smul := sorry,
-  mul_smul := sorry,
-  smul_zero := sorry,
-  smul_add := sorry,
-  zero_smul := sorry,
-  add_smul := sorry }
+  one_smul := λv, by simp,
+  mul_smul := λA B v, by simp,
+  smul_zero := λA, begin
+    funext i j,
+    simp [matrix.mul_vec]
+  end,
+  smul_add := λA x y, by apply matrix.mul_vec_add,
+  zero_smul := λx, by simp,
+  add_smul := λA B x, by apply matrix.add_mul_vec, }
 
-@[simp] def det (A : square_matrix n) : ℂ :=
+@[simp] def det : ℂ :=
   matrix.det A
 
 @[simp] lemma det_one :
@@ -83,15 +66,16 @@ by simp
   det (0 : square_matrix n) = 0 :=
 by simp
 
-/- Finite dimensional matrices must have eigenvalues/eigenvectors. -/
-@[simp] lemma has_nonzero_eigenvalue_and_eigenvector (A : square_matrix n) : 
+/- Finite nonzero dimensional matrices must have at least one eigenvalue/eigenvector. -/
+@[simp] lemma has_nonzero_eigenvalue_and_eigenvector
+  (h : A ≠ 0) :
   ∃ (x : ℂ) (v : vec n), x ≠ 0 ∧ v ≠ 0 ∧ (A - x • I).det = 0 ∧ (A - x • I) • v = 0 :=
 sorry
 
-def is_invertible (A : square_matrix n) : Prop :=
+def is_invertible : Prop :=
   ∃ (B : square_matrix n), B * A = 1
 
-@[simp] lemma square_eq_self (A : square_matrix n) :
+@[simp] lemma square_eq_self :
   A * A = A → A = 0 ∨ A = 1 :=
 begin
   intro h,
@@ -99,7 +83,7 @@ begin
   sorry
 end
 
-lemma invertible_assoc (A B : square_matrix n) :
+lemma inv_assoc (A B : square_matrix n) :
   A * B = 1 → B * A = 1 :=
 begin
   intro h,
@@ -137,11 +121,11 @@ begin
 end
 
 /- There is a computable inverse matrix if det is not zero -/
-@[simp] lemma det_ne_zero_invertible (A : square_matrix n) :
+@[simp] lemma det_ne_zero_invertible :
   A.det ≠ 0 → A.is_invertible :=
 sorry
 
-@[simp] lemma invertible_det_ne_zero (A : square_matrix n) :
+@[simp] lemma invertible_det_ne_zero :
   A.is_invertible → A.det ≠ 0 :=
 begin
   intro h,
@@ -159,11 +143,11 @@ begin
   assumption
 end
 
-@[simp] theorem det_ne_zero_iff (A : square_matrix n) :
+@[simp] theorem det_ne_zero_iff :
   A.det ≠ 0 ↔ A.is_invertible :=
 iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
 
-@[simp] def to_linear_operator (A : square_matrix n) :
+@[simp] def to_linear_operator :
   linear_operator ℂ (vec n) :=
 { to_fun := λv, A.mul_vec v,
   map_add' := begin
@@ -182,16 +166,22 @@ iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
     exact h,
   end }
 
-@[simp] def conj_transpose (A : square_matrix n) : square_matrix n :=
+@[simp] def transpose : square_matrix n :=
+  matrix.transpose A
+
+@[simp] lemma transpose_det :
+  A.transpose.det = A.det :=
+by apply matrix.det_transpose
+
+@[simp] def conj_transpose : square_matrix n :=
   matrix.conj_transpose A
 
-@[simp] lemma conj_transpose_det (A : square_matrix n) :
+@[simp] lemma conj_transpose_det :
   A.conj_transpose.det = star A.det :=
 by apply matrix.det_conj_transpose
 
-@[simp] def is_unitary (A : square_matrix n) : Prop :=
+@[simp] def is_unitary : Prop :=
   A.conj_transpose = A
-
 
 @[simp] def det1 (A : square_matrix 0) : ℂ :=
   A 0 0

@@ -12,13 +12,12 @@ namespace FG
 -/
 def invertible_matrix (n : ℕ) :=
   { A : square_matrix n // A.is_invertible }
-
 -- Alternative:
   -- {A : square_matrix n // A.det ≠ 0}
 
 namespace invertible_matrix
 
-variables {n : ℕ}
+variables {n : ℕ} (A : invertible_matrix n)
 
 @[ext] theorem ext (A B : invertible_matrix n) :
   A.val = B.val → A = B :=
@@ -42,15 +41,17 @@ begin
   let B := classical.some property,
   have hB := classical.some_spec property,
   have h : ∃A, A * B = 1 := begin
-    apply exists.intro A,
-    rw square_matrix.invertible_assoc B A,
+    use A,
+    rw square_matrix.inv_assoc B A,
     exact hB
   end,
   use ⟨B, h⟩
 end
 
-@[simp] lemma det_ne_zero (A : invertible_matrix n) :
-  A.val.det ≠ 0 :=
+@[simp] def det : ℂ := A.val.det
+
+@[simp] lemma det_ne_zero :
+  A.det ≠ 0 :=
 A.val.invertible_det_ne_zero A.property
 
 @[simp] lemma mul_invertible (A B : invertible_matrix n) :
@@ -67,6 +68,13 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
 @[simps] def one : invertible_matrix n :=
   ⟨1, (1 : square_matrix n).det_ne_zero_invertible
     (ne_zero_of_eq_one square_matrix.det_one)⟩
+
+@[simps] def I : invertible_matrix n := one
+
+/- `inv` depends on `classical.some` and I don't know how to prove this here... -/
+@[simp] protected lemma mul_left_inv :
+  A.inv.mul A = one :=
+sorry
 
 /-
   This group of `n×n` invertible matrices is called
@@ -92,22 +100,15 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
     simp
   end,
   inv := inv,
-  mul_left_inv := begin
-    intro A,
-    let B := inv A,
-    calc mul (inv A) A = mul B A
-      : by refl
-    ... = one
-      : sorry
-  end }
+  mul_left_inv := invertible_matrix.mul_left_inv }
 
-@[simp] def mul_vec (A : invertible_matrix n) (v : vec n) :
+@[simp] def mul_vec (v : vec n) :
   vec n :=
 A.val.mul_vec v
 
 /- `invertible_matrix` is not a `ring`, which means it is not a `module` over `vec n`. -/
 
-@[simp] def to_linear_operator (A : invertible_matrix n) :
+@[simp] def to_linear_operator :
   linear_operator ℂ (vec n) :=
 { to_fun := λv, A.mul_vec v,
   map_add' := begin
@@ -126,7 +127,7 @@ A.val.mul_vec v
     exact h,
   end }
 
-@[simps] def conj_transpose (A : invertible_matrix n) : invertible_matrix n :=
+@[simps] def conj_transpose : invertible_matrix n :=
 ⟨A.val.conj_transpose, begin
   apply square_matrix.det_ne_zero_invertible,
   rw square_matrix.conj_transpose_det,
@@ -135,7 +136,7 @@ A.val.mul_vec v
   exact A.property
 end⟩
 
-@[simp] def is_unitary (A : invertible_matrix n) : Prop :=
+@[simp] def is_unitary : Prop :=
   A.val.is_unitary
 
 end invertible_matrix

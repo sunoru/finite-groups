@@ -56,12 +56,33 @@ namespace Z₃
 
 /- A representation of Z₃ -/
 noncomputable def rep1 : Z₃ → ℂ
-| e := 0
+| e := 1
 | a := ⟨-0.5,  real.sqrt 3 / 2⟩ -- exp(2πi/3)
 | b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
 
-instance rep1.representation : representation Z₃ ℂ ℂ :=
-sorry
+noncomputable instance rep1.representation : representation Z₃ ℂ ℂ :=
+{ map := λz, complex.to_linear_operator z.rep1,
+  id_mapped := begin
+    apply linear_map.ext,
+    intro x,
+    simp,
+    calc e.rep1 * x = 1 * x
+        : rfl
+      ... = x
+        : by rw one_mul
+  end,
+  mul_mapped := begin
+    intros z₁ z₂,
+    apply linear_map.ext,
+    intro x,
+    simp,
+    cases' classical.em (x = 0),
+    { apply or.intro_right, exact h },
+    { apply or.intro_left,
+      /- noncomputable since depends on ℂ * ℂ -/
+      sorry }
+  end }
+
 
 /- ## The regular representation -/
 def rep2 : Z₃ → mat3

@@ -85,23 +85,72 @@ def rep : matrix_representation 1 group_int :=
   end }
 
 /- The representation is reducible -/
-example : rep.is_reducible :=
+@[simp] def P : square_matrix 1 := ![![1, 0], ![0, 0]]
+
+lemma rep.is_reducible_by_P :
+  rep.is_reducible_by P :=
 begin
-  let P : square_matrix 1 := ![![1, 0], ![0, 0]],
-  use P,
   intro x,
   cases' x,
   funext i j,
   fin_cases i,
-  { fin_cases j,
-    repeat { simp [rep, vec.smul] } },
-  { fin_cases j,
+  repeat { fin_cases j,
     repeat { simp [rep, vec.smul] } }
+end
+
+example : rep.is_reducible :=
+begin
+  use P,
+  exact rep.is_reducible_by_P
 end
 
 /- But it is not completely reducible -/
 example : ¬rep.is_completely_reducible :=
-sorry
+begin
+  intro h,
+  have h₁ := rep.orthogonal_completely_reducible P h rep.is_reducible_by_P,
+  have h₂ : ¬rep.is_reducible_by (1 - P) :=
+  begin
+    apply iff.elim_right not_forall,
+    use ⟨2⟩,
+    have h₁ : (1 - P) = ![![0, 0], ![0, 1]] :=
+    begin
+      funext i j,
+      fin_cases i,
+      repeat { fin_cases j,
+        repeat { simp [matrix.vec_head, matrix.vec_tail] } }
+    end,
+    have h₂ : (rep.f ⟨2⟩).val = ![![1, 2], ![0, 1]] :=
+    begin
+      simp [rep],
+      funext i j,
+      fin_cases i,
+      repeat { fin_cases j, 
+        repeat { simp } }
+    end,
+    have h₃ := by calc (1 - P) * (rep.f ⟨2⟩).val * (1 - P) = ![![0, 0], ![0, 1]] * ![![1, 2], ![0, 1]] * ![![0, 0], ![0, 1]]
+        : by rw [h₁, h₂]
+      ... = ![![0, 0], ![0, 1]]
+        : begin
+          funext i j,
+          repeat { fin_cases j,
+            repeat { simp [vec.smul, matrix.vec_head, matrix.vec_tail] } }
+        end,
+    have h₄ : (rep.f ⟨2⟩).val * (1 - P) = ![![0, 2], ![0, 1]] :=
+      begin
+        simp [rep],
+        funext i j,
+        repeat { fin_cases j,
+          repeat { simp [vec.smul, matrix.vec_head, matrix.vec_tail] } }
+      end,
+    rw [h₃, h₄],
+    intro h₅,
+    apply_fun (λx, x 0 1) at h₅,
+    simp at h₅,
+    exact h₅
+  end,
+  exact h₂ h₁
+end
 
 end group_int
 

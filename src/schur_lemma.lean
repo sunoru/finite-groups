@@ -10,6 +10,7 @@ namespace FG
 open matrix_representation
 open square_matrix
 open invertible_matrix
+open lemmas
 
 namespace schur_lemma
 
@@ -18,29 +19,7 @@ variables {n : ℕ} (A : square_matrix n)
 /- If `D₁` and `D₂` are inequivalent, irreducible representations,
   and `∀g ∈ G, D₁(g) * A = A * D₂(g)`, then `A = 0` -/
 
-def vector_annihilates_right : Prop :=
-  ∃(μ : vec n), μ ≠ 0 ∧ A.mul_vec μ = 0
-
-def vector_annihilates_left : Prop :=
-  ∃(ν : vec n), ν ≠ 0 ∧ A.transpose.mul_vec ν = 0
-
-def vector_annihilates : Prop :=
-  vector_annihilates_right A ∨ vector_annihilates_left A
-
-lemma det_eq_zero_vector_annihilates :
-  A.det = 0 ↔ vector_annihilates A :=
-sorry
-
-/- `A` is either annihilated by a vector on the left or on the right,
-  otherwise it muse be an invertible matrix  -/
-lemma vector_annihilates_or_ivertible :
-  vector_annihilates A ∨ is_invertible A :=
-begin
-  rw ←det_eq_zero_vector_annihilates,
-  rw ←det_ne_zero_iff,
-  apply classical.em
-end
-
+/- TODO: this is wrong but works -/
 @[simp] def get_projector (v : vec n) : square_matrix n :=
   λi _, v i
 
@@ -58,8 +37,6 @@ begin
     exact i },
   { funext i j,
     simp [matrix.mul, *],
-    have h₁ : (0 : square_matrix n) i j = 0 := rfl,
-    rw h₁,
     unfold square_matrix.mul_vec at h,
     calc matrix.dot_product (A i) μ = (matrix.mul_vec A μ) i
         : by simp [matrix.mul_vec]
@@ -67,6 +44,7 @@ begin
         : by simp * }
 end
 
+/- TODO: An irreducible representation `D` is projected onto the whole space, so `A` must vanish. -/
 lemma projection_annihilates_vanish {G : Type} [group G]
     (P  : square_matrix n)
     (D  : matrix_representation n G)
@@ -74,12 +52,9 @@ lemma projection_annihilates_vanish {G : Type} [group G]
     (hp : P ≠ 0)
     (h  : ∀(g : G), A * (D.f g).val * P = 0) :
   A = 0 :=
-begin
-  /- TODO: An irreducible representation `D` is projected onto the whole space, so `A` must vanish. -/
-  sorry
-end
+sorry
 
-lemma schur_lemma₁ {G : Type} [group G] 
+lemma schur_lemma₁ {G : Type} [group G]
     (D₁ D₂ : matrix_representation n G)
     (h_inequivalent : ¬is_equivalent D₁ D₂)
     (h_irreducible₁ : is_irreducible D₁)
@@ -147,14 +122,17 @@ end
   it is proportional to the identity.
 -/
 
-lemma schur_lemma₂ {G : Type} [finite_group G] 
+lemma schur_lemma₂ {G : Type} [finite_group G]
     (D : matrix_representation n G)
     (h_irreducible : is_irreducible D)
     (h : ∀(g : G), (D.f g).val * A = A * (D.f g).val) :
   ∃(a : ℂ), A = a • square_matrix.I :=
 begin
-  /- Similar to a step above -/
-  rcases A.has_nonzero_eigenvalue_and_eigenvector with ⟨γ, μ, hγ, hμ, h₁, h₂⟩,
+  cases' classical.em (A = 0) with hA hA,
+  /- If `A = 0` it is trivial -/
+  { use 0, rw zero_smul, exact hA },
+  /- Otherwise, similar to a step above -/
+  rcases A.has_nonzero_eigenvalue_and_eigenvector hA with ⟨γ, μ, hγ, hμ, h₁, h₂⟩,
   have h₃ := λ(g : G), calc (D.f g).val * (A - γ • I) = (D.f g).val * A - (D.f g).val * (γ • I)
       : mul_sub _ _ _
     ... = A * (D.f g).val - (D.f g).val * (γ • I)
