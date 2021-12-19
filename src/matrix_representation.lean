@@ -139,6 +139,7 @@ def is_block_diagonal : Prop :=
 @[simp] def is_completely_reducible : Prop :=
   ∃(D' : matrix_representation n G), is_equivalent D D' ∧ is_block_diagonal D'
 
+/- TODO -/
 @[simp] lemma orthogonal_completely_reducible
     (P : square_matrix n) (h : D.is_completely_reducible) :
   D.is_reducible_by P → D.is_reducible_by (1 - P) :=

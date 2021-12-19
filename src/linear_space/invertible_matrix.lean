@@ -29,32 +29,50 @@ begin
   exact h
 end
 
-/-
-  Use `classical.some` to get the inverse matrix.
-  It's actually computable but too complicated to implement here.
-  So are the definitions of `group` and `similarity_transformation` (in `matrix_representation`), etc.
- -/
-@[simp] noncomputable def inv (A : invertible_matrix n) :
-  invertible_matrix n :=
-begin
-  cases' A with A,
-  let B := classical.some property,
-  have hB := classical.some_spec property,
-  have h : ∃A, A * B = 1 := begin
-    use A,
-    have h₁ : B * A = 1 → A * B = 1 := sorry,
-    rw h₁,
-    -- rw square_matrix.inv_assoc B A,
-    exact hB
-  end,
-  use ⟨B, h⟩
-end
-
 @[simp] def det : ℂ := A.val.det
 
 @[simp] lemma det_ne_zero :
   A.det ≠ 0 :=
 A.val.invertible_det_ne_zero A.property
+
+-- /-
+--   I used to se `classical.some` to get the inverse matrix.
+--   It was actually computable but too complicated to implement here.
+--   So were the definitions of `group` and `similarity_transformation` (in `matrix_representation`), etc.
+--  -/
+-- @[simp] noncomputable def inv (A : invertible_matrix n) :
+--   invertible_matrix n :=
+-- begin
+--   cases' A with A,
+--   let B := classical.some property,
+--   have hB := classical.some_spec property,
+--   have h : ∃A, A * B = 1 := begin
+--     use A,
+--     have h₁ : B * A = 1 → A * B = 1 := sorry,
+--     rw h₁,
+--     -- rw square_matrix.inv_assoc B A,
+--     exact hB
+--   end,
+--   use ⟨B, h⟩
+-- end
+
+/- Now just use `A.val.inverse (A.det ≠ 0)` -/
+@[simp] noncomputable def inv (A : invertible_matrix n) :
+  invertible_matrix n :=
+⟨ A.val.inverse A.det_ne_zero,
+  begin
+    let invA := A.val.inverse A.det_ne_zero,
+    apply square_matrix.det_ne_zero_invertible,
+    have h : A.val.det ≠ 0 := A.det_ne_zero,
+    have h₂ := by calc invA.det * A.val.det = (invA * A.val).det
+        : (matrix.det_mul invA A.val).symm
+      ... = (1 : square_matrix n).det
+        : by rw A.val.mul_inverse_left
+      ... ≠ 0
+        : by simp,
+    have h₃ : invA.det ≠ 0 := (ne_zero_and_ne_zero_of_mul h₂).left,
+    exact h₃
+  end ⟩
 
 @[simp] lemma mul_invertible (A B : invertible_matrix n) :
   (A.val * B.val).is_invertible :=
@@ -73,10 +91,14 @@ square_matrix.det_ne_zero_invertible (A.val * B.val) (by calc
 
 @[simps] def I : invertible_matrix n := one
 
-/- `inv` depends on `classical.some` and I don't know how to prove this here... -/
 @[simp] protected lemma mul_left_inv :
   A.inv.mul A = one :=
-sorry
+begin
+  apply ext,
+  apply A.val.mul_inverse_left,
+  apply A.val.invertible_det_ne_zero,
+  exact A.property
+end
 
 /-
   This group of `n×n` invertible matrices is called

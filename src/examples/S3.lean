@@ -149,13 +149,14 @@ begin
   simp,
   intro z,
   cases' z,
-  { simp,
+  { unfold rep,
     funext i j,
     fin_cases i,
     repeat { fin_cases j,
       repeat { simp [matrix.conj_transpose] } } },
   repeat { sorry }
 end
+
 example : rep.is_irreducible :=
 begin
   sorry

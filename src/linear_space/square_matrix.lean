@@ -75,17 +75,43 @@ sorry
 def is_invertible : Prop :=
   ∃ (B : square_matrix n), B * A = 1
 
-@[simp] def adjacent : ℂ :=
+/- The following functions are trying to calculate an inverse matrix by the adjacent matrix. -/
+
+@[simp] def minor (A : square_matrix n) (i j : fin (n + 1)) : ℂ :=
 begin
+  let submatrix : square_matrix (n - 1) :=
+  λ(i' j'), A (if i' < i then i' else i' + 1) (if j' < j then j' else j' + 1),
+  use submatrix.det
 end
 
-@[simp] def inverse (h : A.det ≠ 0) : square_matrix n :=
+@[simp] def transpose : square_matrix n :=
+  matrix.transpose A
+
+@[simp] def cofactor_matrix : square_matrix n :=
+  λ(i j), (-1) ^ ((i : ℕ) + j) * A.minor i j
+
+@[simp] def adjacent : square_matrix n :=
+  A.cofactor_matrix.transpose
+
+@[simp] noncomputable def inverse (h : A.det ≠ 0) : square_matrix n :=
   λ(i j), A.adjacent i j / A.det
 
-/- There is a computable inverse matrix if det is not zero -/
+/- TODO: Too compliated(?). Haven't figured out how to prove this yet. -/
+@[simp] lemma mul_inverse_left (h : A.det ≠ 0) :
+  A.inverse h * A = 1 :=
+begin
+  funext i j,
+  simp [matrix.mul, matrix.dot_product],
+  sorry
+end
+
 @[simp] lemma det_ne_zero_invertible :
   A.det ≠ 0 → A.is_invertible :=
-sorry
+begin
+  intro h,
+  use A.inverse h,
+  apply A.mul_inverse_left
+end
 
 @[simp] lemma invertible_det_ne_zero :
   A.is_invertible → A.det ≠ 0 :=
@@ -129,9 +155,6 @@ iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
     simp [mul_vec],
     exact h,
   end }
-
-@[simp] def transpose : square_matrix n :=
-  matrix.transpose A
 
 @[simp] lemma transpose_det :
   A.transpose.det = A.det :=

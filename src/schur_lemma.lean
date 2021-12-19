@@ -10,7 +10,7 @@ namespace FG
 open matrix_representation
 open square_matrix
 open invertible_matrix
-open lemmas
+open miscs
 
 namespace schur_lemma
 
@@ -19,7 +19,7 @@ variables {n : ℕ} (A : square_matrix n)
 /- If `D₁` and `D₂` are inequivalent, irreducible representations,
   and `∀g ∈ G, D₁(g) * A = A * D₂(g)`, then `A = 0` -/
 
-/- TODO: this is wrong but works -/
+/- TODO: this is wrong but works. (Need to be normalized) -/
 @[simp] def get_projector (v : vec n) : square_matrix n :=
   λi _, v i
 
@@ -48,7 +48,7 @@ end
 lemma projection_annihilates_vanish {G : Type} [group G]
     (P  : square_matrix n)
     (D  : matrix_representation n G)
-    (hD : is_irreducible D)
+    (hD : D.is_irreducible)
     (hp : P ≠ 0)
     (h  : ∀(g : G), A * (D.f g).val * P = 0) :
   A = 0 :=
@@ -57,8 +57,8 @@ sorry
 lemma schur_lemma₁ {G : Type} [group G]
     (D₁ D₂ : matrix_representation n G)
     (h_inequivalent : ¬is_equivalent D₁ D₂)
-    (h_irreducible₁ : is_irreducible D₁)
-    (h_irreducible₂ : is_irreducible D₂)
+    (h_irreducible₁ : D₁.is_irreducible)
+    (h_irreducible₂ : D₂.is_irreducible)
     (h : ∀(g : G), (D₁.f g).val * A = A * (D₂.f g).val) :
   A = 0 :=
 begin
@@ -109,7 +109,7 @@ begin
           : mul_zero _,
       -- Since `D₂` is irreducible, `A` must be zero.
       apply projection_annihilates_vanish A P D₂ h_irreducible₂ hp h₅ },
-    { -- When `vector_annihilates_left A`, it's similar to the case above.
+    { -- TODO: When `vector_annihilates_left A`, it's similar to the case above.
       sorry }}
 end
 
@@ -124,7 +124,7 @@ end
 
 lemma schur_lemma₂ {G : Type} [finite_group G]
     (D : matrix_representation n G)
-    (h_irreducible : is_irreducible D)
+    (h_irreducible : D.is_irreducible)
     (h : ∀(g : G), (D.f g).val * A = A * (D.f g).val) :
   ∃(a : ℂ), A = a • square_matrix.I :=
 begin

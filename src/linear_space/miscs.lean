@@ -8,7 +8,7 @@ namespace FG
 
 /- Useful lemmas -/
 
-namespace lemmas
+namespace miscs
 
 open square_matrix
 open invertible_matrix
@@ -75,6 +75,6 @@ begin
   apply classical.em
 end
 
-end lemmas
+end miscs
 
 end FG
