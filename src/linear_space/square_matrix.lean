@@ -8,7 +8,6 @@ namespace FG
   ## Square Matrix
 
   The basic definitions of mathlib's `matrix` are used.
-  Assume all matrix elements are ℂ, which is commonly used in physics.
 -/
 
 def matrix_func : Type := ℕ → ℕ → ℂ
@@ -47,7 +46,8 @@ instance : module (square_matrix n) (vec n) :=
 { smul := mul_vec,
   one_smul := λv, by simp,
   mul_smul := λA B v, by simp,
-  smul_zero := λA, begin
+  smul_zero := λA,
+  begin
     funext i j,
     simp [matrix.mul_vec]
   end,
@@ -75,50 +75,12 @@ sorry
 def is_invertible : Prop :=
   ∃ (B : square_matrix n), B * A = 1
 
-@[simp] lemma square_eq_self :
-  A * A = A → A = 0 ∨ A = 1 :=
+@[simp] def adjacent : ℂ :=
 begin
-  intro h,
-  -- TODO: This is wrong.
-  sorry
 end
 
-lemma inv_assoc (A B : square_matrix n) :
-  A * B = 1 → B * A = 1 :=
-begin
-  intro h,
-  have h₂ := by calc B * A = B * 1 * A
-      : by rw mul_one B
-    ... = B * (A * B) * A
-      : by rw ←h
-    ... = B * A * (B * A)
-      : begin
-      rw ←ring.mul_assoc,
-      rw ring.mul_assoc,
-      refl
-    end,
-  have h₃ := square_eq_self (B * A) h₂.symm,
-  have h₄ := by calc A.det * B.det = (A * B).det
-      : (matrix.det_mul A B).symm
-    ... = (1 : square_matrix n).det
-      : by rw h
-    ... = (1 : ℂ)
-      : det_one,
-  cases' h₃,
-  { apply false.elim,
-    have h₅ : A.det * B.det ≠ 0 :=
-      ne_zero_of_eq_one h₄,
-    apply h₅,
-    calc A.det * B.det = B.det * A.det
-      : by cc
-    ... = (B * A).det
-      : by apply (matrix.det_mul B A).symm
-    ... = (0 : square_matrix n).det
-      : by rw h_1
-    ... = (0 : ℂ)
-      : by apply det_zero },
-  { assumption }
-end
+@[simp] def inverse (h : A.det ≠ 0) : square_matrix n :=
+  λ(i j), A.adjacent i j / A.det
 
 /- There is a computable inverse matrix if det is not zero -/
 @[simp] lemma det_ne_zero_invertible :
@@ -150,7 +112,8 @@ iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
 @[simp] def to_linear_operator :
   linear_operator ℂ (vec n) :=
 { to_fun := λv, A.mul_vec v,
-  map_add' := begin
+  map_add' :=
+  begin
     intros v w,
     apply vec.ext,
     intro i,
@@ -158,7 +121,8 @@ iff.intro (det_ne_zero_invertible A) (invertible_det_ne_zero A)
       matrix.dot_product, matrix.dot_product_add,
       mul_add, finset.sum_add_distrib ],
   end,
-  map_smul' := begin
+  map_smul' :=
+  begin
     intros a v,
     have h := (matrix.mul_vec_lin A).map_smul' a v,
     simp at h,
@@ -198,11 +162,15 @@ do
 @[simp] def det2 (A : square_matrix 1) : ℂ :=
   A 0 0 * A 1 1 - A 0 1 * A 1 0
 
-/- Too complicated to prove this? -/
+/- This was copied from mathlib's internal file :( -/
 lemma det2_eq (A : square_matrix 1) :
   A.det = A.det2 :=
-sorry
+begin
+  simp [matrix.det_succ_row_zero, fin.sum_univ_succ],
+  ring,
+end
 
+/- Helper tactic for quickly solve simple 2-dimensional determinants. -/
 meta def invertible_det2 : tactic unit :=
 do
   tactic.applyc `FG.square_matrix.det_ne_zero_invertible,

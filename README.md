@@ -14,11 +14,16 @@ $ leanproject --build
 
 Please refer to the comments in individual files for the details.
 
+Start with the `default.lean` file under each directory.
+
 ### Basic
 
-In `./src/basic`, basic concepts like `finite_group` and `representation` are defined.
+In `./src/basic/`, basic concepts like `finite_group` and `representation` are defined.
 
 ### 3-Dimensional Linear Space
 
-In `./src/linear_space3`, the 3-dimensional linear space on real numbers ($\R$) is defined.
+In `./src/linear_space3/`, the 3-dimensional linear space on real numbers ($\R$) is defined.
 
+### General Linear Space
+
+See `./src/linear_space/` where more general linear spaces with any finite dimension are defined.

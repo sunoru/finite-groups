@@ -6,12 +6,13 @@ namespace FG
 
 /- ## Invertible 3x3 Matrix -/
 
+/- `is_invertible` is a `Prop` of `mat3`. -/
 namespace mat3
 
 def is_invertible (A : mat3) : Prop :=
   ∃(B : mat3), A * B = 1
 
-/- ### Unitary operator -/
+/- A `mat3` is unitary if it's the inverse of its transpose. -/
 @[simp] def is_unitary (A : mat3) : Prop :=
   A * A.transpose = 1
 
@@ -23,28 +24,43 @@ begin
   assumption
 end
 
-
-noncomputable def inverse (A : mat3) : mat3 :=
+/- Get the inverse of a `mat3`, by calculating the adjugate matrix.
+  It's noncomputable because of the dependency of `real.div`. -/
+noncomputable def inverse (A : mat3): mat3 :=
 begin
   let detA := A.det,
   let AT := A.transpose,
   let subdet := λ(a b c d : ℝ), a * d - b * c,
-  let M : mat3 := ⟨
-    ⟨subdet AT.y.y AT.y.z AT.z.y AT.z.z, subdet AT.y.x AT.y.z AT.z.x AT.z.z, subdet AT.y.x AT.y.y AT.z.x AT.z.y⟩,
-    ⟨subdet AT.x.y AT.x.z AT.z.y AT.z.z, subdet AT.x.x AT.x.z AT.z.x AT.z.z, subdet AT.x.x AT.x.y AT.z.x AT.z.y⟩,
-    ⟨subdet AT.x.y AT.x.z AT.y.y AT.y.z, subdet AT.x.x AT.x.z AT.y.x AT.y.z, subdet AT.x.x AT.x.y AT.y.x AT.y.y⟩
-  ⟩,
-  use ⟨
-    ⟨M.x.x / detA, -M.x.y / detA, M.x.z / detA⟩,
-    ⟨-M.y.x / detA, M.y.y / detA, -M.y.z / detA⟩,
-    ⟨M.z.x / detA, -M.z.y / detA, M.z.z / detA⟩
-  ⟩
+  let M : mat3 :=
+  ⟨ ⟨ subdet AT.y.y AT.y.z AT.z.y AT.z.z, subdet AT.y.x AT.y.z AT.z.x AT.z.z, subdet AT.y.x AT.y.y AT.z.x AT.z.y ⟩,
+    ⟨ subdet AT.x.y AT.x.z AT.z.y AT.z.z, subdet AT.x.x AT.x.z AT.z.x AT.z.z, subdet AT.x.x AT.x.y AT.z.x AT.z.y ⟩,
+    ⟨ subdet AT.x.y AT.x.z AT.y.y AT.y.z, subdet AT.x.x AT.x.z AT.y.x AT.y.z, subdet AT.x.x AT.x.y AT.y.x AT.y.y ⟩ ⟩,
+  use
+  ⟨ ⟨ M.x.x / detA, -M.x.y / detA, M.x.z / detA ⟩,
+    ⟨ -M.y.x / detA, M.y.y / detA, -M.y.z / detA ⟩,
+    ⟨ M.z.x / detA, -M.z.y / detA, M.z.z / detA ⟩ ⟩
 end
 
-@[simp] theorem exists_inverse (A : mat3) (h : A.det ≠ 0) :
+/- There is an inverse if the matrix has nonzero determinant.
+  It is -/
+@[simp] theorem mul_inv_eq_one (A : mat3) (h : A.det ≠ 0) :
   A * A.inverse = 1 :=
-sorry
+begin
+  simp [inverse, *],
+  repeat { apply and.intro },
+  /- `field_simp` is used since divisions are involved. -/
+  repeat { field_simp, ring }
+end
+@[simp] theorem inv_mul_eq_one (A : mat3) (h : A.det ≠ 0) :
+  A.inverse * A = 1 :=
+begin
+  simp [inverse, *],
+  repeat { apply and.intro },
+  /- `field_simp` is used since divisions are involved. -/
+  repeat { field_simp, ring }
+end
 
+/- `is_invertible` is equivalent to `det ≠ 0` -/
 @[simp] lemma invertible_det_ne_zero (A : mat3) :
   is_invertible A → A.det ≠ 0 :=
 begin
@@ -67,7 +83,7 @@ end
 begin
   intro h,
   use A.inverse,
-  exact exists_inverse A h
+  exact mul_inv_eq_one A h
 end
 
 theorem det_iff (A : mat3) :
@@ -78,21 +94,16 @@ begin
   { exact det_ne_zero_invertible A }
 end
 
-lemma mul_eq_one_assoc (A B : mat3) : A * B = 1 → B * A = 1 :=
-begin
-  intro h,
-  sorry
-end
-
 lemma inverse_invertible (A : mat3) (h : A.det ≠ 0) :
   is_invertible A.inverse :=
 begin
   apply exists.intro A,
-  apply mul_eq_one_assoc,
-  exact exists_inverse A h
+  exact inv_mul_eq_one A h
 end
 
 end mat3
+
+/- `invertible_mat3` is a subtype of `mat3` that has the `is_invertible` property. -/
 
 @[simp] def invertible_mat3 : Type := { A : mat3 // A.is_invertible }
 
@@ -103,15 +114,16 @@ namespace invertible_mat3
 subtype.eq
 
 @[simps] def mul (A B : invertible_mat3) : invertible_mat3 :=
-⟨A.val * B.val, begin
-  apply mat3.det_ne_zero_invertible,
-  have ha := mat3.invertible_det_ne_zero A.val A.property,
-  have hb := mat3.invertible_det_ne_zero B.val B.property,
-  calc (A.val * B.val).det = A.val.det * B.val.det
-      : by rw mat3.det_mul_det
-    ... ≠ 0
-      : by apply mul_ne_zero ha hb
-end⟩
+⟨ A.val * B.val,
+  begin
+    apply mat3.det_ne_zero_invertible,
+    have ha := mat3.invertible_det_ne_zero A.val A.property,
+    have hb := mat3.invertible_det_ne_zero B.val B.property,
+    calc (A.val * B.val).det = A.val.det * B.val.det
+        : by rw mat3.det_mul_det
+      ... ≠ 0
+        : by apply mul_ne_zero ha hb
+  end ⟩
 
 @[simps] def one : invertible_mat3 :=
 ⟨1, by simp⟩
@@ -170,12 +182,12 @@ begin
   cases' A,
   apply ext,
   simp only [one, inv, mul],
-  apply mat3.mul_eq_one_assoc,
-  apply mat3.exists_inverse,
+  apply mat3.inv_mul_eq_one,
   apply mat3.invertible_det_ne_zero,
   assumption
 end
 
+/- Then it's a `group`. Since any invertible matrix has an inverse. -/
 @[simps] noncomputable instance group : group invertible_mat3 :=
 { mul := mul,
   one := one,

@@ -8,6 +8,7 @@ import data.vector
 import linear_algebra.matrix.determinant
 import linear_algebra.matrix.to_lin
 import linear_algebra.multilinear.basic
+import tactic
 import tactic.fin_cases
 import tactic.induction
 

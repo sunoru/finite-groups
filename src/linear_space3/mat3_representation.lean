@@ -5,7 +5,9 @@ import .data
 
 namespace FG
 
-/- ## mat3 Representation -/
+/- ## 3x3 Matrix Representation
+
+  A function mapping from `group G` to `mat3` can be a representation. -/
 
 class mat3_representation {G : Type} [group G]
   (D : G → mat3)
@@ -17,7 +19,7 @@ namespace mat3_representation
 
 variables {G : Type} [finite_group G]
 
-/- `mat3_representation` is a `representation G ℝ vec3` -/
+/- The representation is a on `vec3` over `ℝ` -/
 @[simps] instance representation (D : G → mat3)
   [mat3_representation D] : representation G ℝ vec3 :=
 { map := λx, (D x).to_linear_operator,
@@ -60,10 +62,7 @@ variables {G : Type} [finite_group G]
 @[simp] def is_irreducible (D : G → mat3) [mat3_representation D] : Prop :=
   ¬ is_reducible D
 
--- @[simp]
--- @[simp] def is_completely_reducible (D : G → mat3) [mat3_representation D] : Prop :=
---     ∃(Q )
---   ∃(P : mat3), ∀(x : G), P * (D x) * P = (D x) * P ∧ P * P = 1
+/- Please see `./examples/Z3.lean` for an example. -/
 
 end mat3_representation
 

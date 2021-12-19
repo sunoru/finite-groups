@@ -30,7 +30,7 @@ begin
 end
 
 /-
-  Use classical.some to get the inverse matrix.
+  Use `classical.some` to get the inverse matrix.
   It's actually computable but too complicated to implement here.
   So are the definitions of `group` and `similarity_transformation` (in `matrix_representation`), etc.
  -/
@@ -42,7 +42,9 @@ begin
   have hB := classical.some_spec property,
   have h : ∃A, A * B = 1 := begin
     use A,
-    rw square_matrix.inv_assoc B A,
+    have h₁ : B * A = 1 → A * B = 1 := sorry,
+    rw h₁,
+    -- rw square_matrix.inv_assoc B A,
     exact hB
   end,
   use ⟨B, h⟩

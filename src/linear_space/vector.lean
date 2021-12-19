@@ -3,7 +3,11 @@ import ..basic
 
 namespace FG
 
-/- ## Vector -/
+/- ## Vector
+
+  Defined as a function from a finite natural number to the value on that dimension.
+  Note that study complex numbers are studied here since
+  they are the most commonly used field in physics. -/
 
 def vec (n : ℕ) := (fin (n + 1) → ℂ)
 
@@ -31,10 +35,12 @@ funext
   ∀(i : fin (n + 1)), (map₂ f v w) i = f (v i) (w i) :=
 by intro i; simp
 
+/- We can then show that `vec n` is an `add_comm_monoid`. -/
 @[simps] instance : add_comm_monoid (vec n) :=
 { zero := zero,
   add := add,
-  add_assoc := begin
+  add_assoc :=
+  begin
     intros a b c,
     apply ext,
     intro i,
@@ -47,19 +53,22 @@ by intro i; simp
       ... = (a.add (b.add c)) i
         : (mapped₂_nth (+) a (b.add c) i).symm
   end,
-  zero_add := begin
+  zero_add :=
+  begin
     intro a,
     apply ext,
     intro i,
     simp,
   end,
-  add_zero := begin
+  add_zero :=
+  begin
     intro a,
     apply ext,
     intro i,
     simp,
   end,
-  add_comm := begin
+  add_comm :=
+  begin
     intros a b,
     apply ext,
     intro i,
@@ -74,38 +83,45 @@ by intro i; simp
 def smul (c : ℂ) (v : vec n) : vec n :=
   map (λx, c * x) v
 
+/- and a module over `ℂ`. -/
 @[simps] instance : module ℂ (vec n) :=
 { smul := smul,
-  smul_zero := begin
+  smul_zero :=
+  begin
     intro a,
     apply ext,
     simp [smul]
   end,
-  smul_add := begin
+  smul_add :=
+  begin
     intros a v w,
     apply ext,
     intro i,
     simp [smul],
     ring
   end,
-  zero_smul := begin
+  zero_smul :=
+  begin
     intro v,
     apply ext,
     simp [smul]
   end,
-  one_smul := begin
+  one_smul :=
+  begin
     intro v,
     apply ext,
     simp [smul]
   end,
-  add_smul := begin
+  add_smul :=
+  begin
     intros a v w,
     apply ext,
     intro i,
     simp [smul],
     ring
   end,
-  mul_smul := begin
+  mul_smul :=
+  begin
     intros a v w,
     apply ext,
     intro i,

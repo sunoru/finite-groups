@@ -45,7 +45,7 @@ namespace Z₃
     by intros a b c; cases' a; cases' b; cases' c; refl,
   inv          := inv,
   mul_left_inv := by intro a; cases' a; refl,
-  elems := ⟨⟦[e, a, b]⟧, by simp⟩,
+  elems := ⟨ ⟦ [e, a, b] ⟧, by simp ⟩,
   complete := by intro x; cases' x; simp }
 
 /- Z₃ is Abelian -/
@@ -57,8 +57,8 @@ namespace Z₃
 /- A representation of Z₃ -/
 noncomputable def rep1 : Z₃ → ℂ
 | e := 1
-| a := ⟨-0.5,  real.sqrt 3 / 2⟩ -- exp(2πi/3)
-| b := ⟨-0.5, -real.sqrt 3 / 2⟩ -- exp(4πi/3)
+| a := ⟨ -0.5,  real.sqrt 3 / 2 ⟩ -- exp(2πi/3)
+| b := ⟨ -0.5, -real.sqrt 3 / 2 ⟩ -- exp(4πi/3)
 
 noncomputable instance rep1.representation : representation Z₃ ℂ ℂ :=
 { map := λz, complex.to_linear_operator z.rep1,
@@ -87,19 +87,16 @@ noncomputable instance rep1.representation : representation Z₃ ℂ ℂ :=
 /- ## The regular representation -/
 def rep2 : Z₃ → mat3
 | e := mat3.I
-| a := ⟨
-  ⟨0, 0, 1⟩,
+| a := ⟨ ⟨0, 0, 1⟩,
   ⟨1, 0, 0⟩,
-  ⟨0, 1, 0⟩
-⟩
-| b := ⟨
-  ⟨0, 1, 0⟩,
+  ⟨0, 1, 0⟩ ⟩
+| b := ⟨ ⟨0, 1, 0⟩,
   ⟨0, 0, 1⟩,
-  ⟨1, 0, 0⟩
-⟩
+  ⟨1, 0, 0⟩ ⟩
 
 namespace rep2
 
+/- The regular representation is a `mat3_representation`. -/
 @[simps] instance representation : mat3_representation rep2 :=
 { id_mapped := by calc
     (1 : Z₃).rep2 = mat3.I
@@ -107,16 +104,17 @@ namespace rep2
   mul_mapped := begin
     intros g₁ g₂,
     cases' g₁,
-    repeat {
-      cases' g₂,
-      repeat { simp [rep2, group.mul] }
-    }
+    repeat { cases' g₂,
+      repeat { simp [rep2, group.mul] } }
   end }
 
 /- `P` is the projection operator of the invariant subspace -/
 lemma is_reducible : mat3_representation.is_reducible rep2 :=
 begin
-  let P : mat3 := ⟨⟨1/3, 1/3, 1/3⟩, ⟨1/3, 1/3, 1/3⟩, ⟨1/3, 1/3, 1/3⟩⟩,
+  let P : mat3 :=
+  ⟨ ⟨ 1/3, 1/3, 1/3 ⟩,
+    ⟨ 1/3, 1/3, 1/3 ⟩,
+    ⟨ 1/3, 1/3, 1/3 ⟩ ⟩,
   apply exists.intro P,
   intro x,
   cases' x,
